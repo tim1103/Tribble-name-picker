@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>随机点名</title>
+    <link href="bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #0d47a1;
+            color: white;
+            padding: 0 20px;
+            height: 60px;
+        }
+
+        .navbar h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+
+        .navbar .class-info {
+            font-size: 18px;
+        }
+
+        .navbar button {
+            width: 120px;
+            height: 40px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+
+        .main-container {
+            flex: 1;
+            overflow-y: auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 10px;
+            padding: 10px;
+            background-color: #f0f0f0;
+        }
+
+        .student-box {
+            width: 100px;
+            height: 50px;
+            background-color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-shadow: 1px 1px 1px 1px rgb(196 196 196 / 20%);
+            overflow: hidden;
+            /* 隐藏溢出的内容 */
+        }
+
+        .highlight {
+            background-color: #ffc107;
+        }
+
+        .bottom-buttons {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            background-color: #ffffff;
+            height: 60px;
+        }
+
+        .bottom-buttons button {
+            border: none;
+            cursor: pointer;
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            position: relative;
+            margin: 5em;
+        }
+
+        .modal-content button {
+            margin-top: 10px;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            cursor: pointer;
+            background: none;
+            border: none;
+            font-size: 20px;
+        }
+
+
+
+        .names {
+            font-size: 2em;
+        }
+
+        .number-button {
+            width: 2em;
+            height: 2em;
+            border-radius: 50%;
+            --bs-btn-padding-x: 0;
+            --bs-btn-padding-y: 0;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        #dragonCards {
+            font-size: 2em;
+        }
+
+        /* 设置表格边框 */
+        table,
+        th,
+        td {
+            border: 1px solid black;
+        }
+
+        /* 设置表格宽度为100%，并且使边框合并 */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        /* 设置表头和单元格的内边距 */
+        th,
+        td {
+            padding: 12px;
+            text-align: center;
+            font-size: 1.3em;
+        }
+
+        .navbar {
+            -webkit-app-region: drag;
+            /* 让导航栏可拖动 */
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #0d47a1;
+            color: white;
+            padding: 0 20px;
+            height: 60px;
+        }
+
+        /*供electron完成拖动逻辑*/
+        .navbar button {
+            -webkit-app-region: no-drag;
+            /* 按钮不可拖动 */
+            cursor: pointer;
+        }
+
+        .window-controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        .window-controls button {
+            background: #0d47a1;
+            border: none;
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+        }
+
+        .controlbutton {
+            border-radius: 5px;
+        }
+
+        .window-controls button {
+            height: 35px;
+            width: 35px;
+        }
+
+        #dragonCard {
+            margin: 10px 0;
+            padding: 10px;
+            background-color: #f0f0f0;
+            border-radius: 5px;
+            text-align: center;
+            opacity: 1;
+            font-size: 2em;
+            font-weight: bolder;
+        }
+
+        /* 新增班级列表样式 */
+        .class-list-container {
+            max-height: 60vh;
+            overflow-y: auto;
+            margin: 20px 0;
+        }
+
+        .class-item {
+            padding: 12px;
+            margin: 5px 0;
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        /* 网格布局样式 */
+        .class-list-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 10px;
+            max-height: 60vh;
+            overflow-y: auto;
+            padding: 10px;
+            width: 80vw;
+            /* 控制模态框宽度 */
+        }
+
+        .class-item {
+            width: 100px;
+            height: 50px;
+            background-color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-shadow: 1px 1px 1px 1px rgb(196 196 196 / 20%);
+            cursor: pointer;
+            transition: all 0.2s;
+            padding: 5px;
+            text-align: center;
+            word-break: break-all;
+            /* 长班级名自动换行 */
+        }
+
+        /* 新增动画相关样式 */
+        .modal {
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .modal.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            transform: translateY(-50px);
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        .modal.show .modal-content {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+
+        /* 关闭时反向动画 */
+        .modal:not(.show) .modal-content {
+            transition: all 0.2s ease-out;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="navbar">
+        <h1 style="font-weight: bolder;">随机点名</h1>
+
+        <div class="class-info">当前班级：<span id="className">高一8班</span>&ensp;总人数：<span id="studentCount">0人</span></div>
+        <!-- 原dropdown代码替换为 -->
+        <button onclick="showClassModal()" class="btn btn-info">选择班级</button>
+        <button onclick="importList()" class="btn btn-info">导入名单</button>
+        <div class="window-controls">
+            <button class="controlbutton" id="minimize-btn"><svg xmlns="http://www.w3.org/2000/svg" width="16"
+                    height="16" fill="currentColor" class="bi bi-dash-lg" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd" d="M2 8a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11A.5.5 0 0 1 2 8Z" />
+                </svg></button> <!-- 最小化按钮 -->
+            <button class="controlbutton" id="maximize-btn"><svg xmlns="http://www.w3.org/2000/svg" width="16"
+                    height="16" fill="currentColor" class="bi bi-square" viewBox="0 0 16 16">
+                    <path
+                        d="M14 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h12zM2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2z" />
+                </svg></button> <!-- 最大化按钮 -->
+            <button class="controlbutton" id="close-btn"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                    fill="currentColor" class="bi bi-x-lg" viewBox="0 0 16 16">
+                    <path
+                        d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8 2.146 2.854Z" />
+                </svg></button> <!-- 关闭按钮 -->
+        </div>
+    </div>
+    <div id="liveAlertPlaceholder">
+        Electron <span id="electron-version"></span>
+        Config 1.0.8[250123] H5 3.5.8[250123]
+    </div>
+    <div class="main-container" id="studentContainer"></div>
+    <div class="bottom-buttons">
+        <button onclick="pickOne()" class="btn  btn-lg btn-primary">抽取一人</button>
+        <button onclick="showNumberSelection()" class="btn  btn-lg btn-success">抽取多人</button>
+        <button onclick="dragonPick()" class="btn  btn-lg btn-warning">接龙抽选</button>
+        <button onclick="randomSeatAssignment()" class="btn btn-lg btn-info">随机选座</button>
+    </div>
+    <!-- 模态框模板 -->
+    <div id="seatModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal('seatModal')">&times;</span>
+            <h3 style="font-weight: bolder;">座位安排</h3>
+            <table id="seatTable" border="1" cellpadding="5" cellspacing="0"></table>
+            <div style="margin-top: 10px; text-align: center;">
+                <button onclick="randomSeatAssignment(true)" class="btn btn-primary">重新分配</button>
+            </div>
+        </div>
+    </div>
+    <!-- 模态框模板 -->
+    <div id="oneModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal('oneModal')">&times;</span>
+            <p id="selectedStudent"></p>
+            <button onclick="pickOne()" class="btn btn-primary">换一人</button>
+        </div>
+    </div>
+    <div id="multipleModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal('multipleModal')">&times;</span>
+            <p>请选择抽取人数：</p>
+            <div>
+                <button onclick="selectNumber(1)" class="btn btn-primary number-button">1</button>
+                <button onclick="selectNumber(2)" class="btn btn-primary  number-button">2</button>
+                <button onclick="selectNumber(3)" class="btn btn-primary  number-button">3</button>
+                <button onclick="selectNumber(4)" class="btn btn-primary  number-button">4</button>
+                <button onclick="selectNumber(5)" class="btn btn-primary  number-button">5</button>
+                <button onclick="selectNumber(6)" class="btn btn-primary  number-button">6</button>
+            </div>
+            <p id="selectedStudents"></p>
+            <button onclick="pickMultiple()" id="rePickButton" class="btn btn-primary">换一组</button>
+        </div>
+    </div>
+    <div id="dragonModal" class="modal">
+        <div class="modal-content roster-modal">
+            <span class="close-btn" onclick="closeModal('dragonModal')">&times;</span>
+            <div id="dragonCard" class="card">请点击“下一位”开始抽选</div>
+            <button onclick="nextDragonPick()" class="btn btn-primary">下一位</button>
+        </div>
+    </div>
+    <!-- 新增班级选择模态框 -->
+    <div id="classModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal('classModal')">&times;</span>
+            <h3 style="font-weight: bolder;">请选择班级</h3>
+            <div id="classList" class="class-list-container"></div>
+        </div>
+    </div>
+    <script src="sheet.js"></script>
+    <script>
+        let students = [];
+        let selectedNumber = 0;
+        let selectedStudents = [];
+
+        function importList() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.txt';
+            input.onchange = function (e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function (event) {
+                        const lines = event.target.result.split('\n').filter(line => line.trim());
+                        if (lines.length === 0) {
+                            Swal.fire({
+                                icon: "error",
+                                title: "文件格式错误",
+                                confirmButtonColor: "#3085d6",
+                                text: "导入的名单文件为空或格式不正确，请检查后重新上传！"
+                            });
+                            return;
+                        }
+                        students = lines;
+                        const className = file.name.split('.').slice(0, -1).join('.');
+                        document.getElementById('className').innerText = className;
+                        updateStudentCount();
+                        renderStudents();
+                    };
+                    reader.readAsText(file);
+                }
+            };
+            input.click();
+        }
+
+        function updateStudentCount() {
+            document.getElementById('studentCount').innerText = `${students.length}人`;
+        }
+
+        function renderStudents() {
+            const container = document.getElementById('studentContainer');
+            container.innerHTML = '';
+            students.forEach(student => {
+                const div = document.createElement('div');
+                div.className = 'student-box';
+                div.innerText = student;
+                container.appendChild(div);
+            });
+        }
+
+        function highlightStudents(indices, clearAll) {
+            const boxes = document.querySelectorAll('.student-box');
+            boxes.forEach((box, index) => {
+                box.classList.remove('highlight');
+                if (!clearAll && indices.includes(index)) {
+                    box.classList.add('highlight');
+                }
+            });
+        }
+
+
+
+
+        // 隐藏选择人数的UI元素的方法
+        function hideNumberSelectionUI() {
+            document.querySelector('#multipleModal p:first-of-type').classList.add('hidden'); // 隐藏提示文案
+            document.querySelectorAll('.number-button').forEach(button => button.classList.add('hidden')); // 隐藏按钮
+        }
+
+        // 显示选择人数的UI元素的方法
+        function showNumberSelectionUI() {
+            document.querySelector('#multipleModal p:first-of-type').classList.remove('hidden'); // 显示提示文案
+            document.querySelectorAll('.number-button').forEach(button => button.classList.remove('hidden')); // 显示按钮
+        }
+
+        function pickMultiple() {
+            if (students.length < selectedNumber) {
+                Swal.fire({
+                    icon: "error",
+                    title: "人数过少",
+                    confirmButtonColor: "#3085d6",
+                    text: `当前班级人数少于选择的抽取人数，请减少抽取人数！`
+                });
+                return;
+            }
+            if (selectedNumber > 0) {
+                let selectedIndices = new Set(); // 使用Set来保证唯一性
+
+                while (selectedIndices.size < selectedNumber) {
+                    const randomIndex = Math.floor(Math.random() * students.length);
+                    selectedIndices.add(randomIndex); // 自动忽略已经存在的索引
+                }
+
+                // 将Set转换为Array并获取对应的学生名字
+                const selectedNames = Array.from(selectedIndices).map(i => students[i]).join(' ');
+                document.getElementById('selectedStudents').innerHTML = `被选中的同学是：<br><strong class="names">${selectedNames}</strong>`;
+                document.getElementById('rePickButton').style.display = 'block';
+                hideNumberSelectionUI();
+            }
+        }
+
+
+
+        function selectNumber(number) {
+            selectedNumber = number;
+            pickMultiple();
+        }
+
+
+
+
+        let currentStudentIndex = -1; // 当前显示的学生索引
+
+
+
+        // 假设 predefinedClasses 已定义并包含了所有班级和学生名单
+
+        function populateDropdown() {
+            const dropdownMenu = document.querySelector('.dropdown-menu');
+            for (const className in predefinedClasses) {
+                const li = document.createElement('li');
+                const button = document.createElement('button');
+                button.className = 'dropdown-item';
+                button.type = 'button';
+                button.innerText = className;
+                button.onclick = function () { changeClass(className); };
+                li.appendChild(button);
+                dropdownMenu.appendChild(li);
+            }
+        }
+
+        function changeClass(className) {
+            if (predefinedClasses.hasOwnProperty(className)) {
+                students = predefinedClasses[className];
+                document.getElementById('className').innerText = className;
+                updateStudentCount();
+                renderStudents();
+                const seatTable = document.getElementById('seatTable');
+                seatTable.innerHTML = ''; // 清空现有表格内容
+            } else {
+                //alert("班级不存在，请重新输入");
+                Swal.fire({
+                    icon: "error",
+                    title: "班级不存在",
+                    confirmButtonColor: "#3085d6",
+                    text: "请尝试重新导入名单！"
+                });
+            }
+        }
+
+        // 全局定义 handleKeyDown 函数
+        let handleKeyDown;
+
+        function addKeyboardListeners(modalId) {
+            // 定义 handleKeyDown 函数
+            handleKeyDown = function (event) {
+                if (event.key === 'Enter' || event.key === 'ArrowDown') {
+                    switch (modalId) {
+                        case 'oneModal':
+                            pickOne();
+                            break;
+                        case 'multipleModal':
+                            pickMultiple();
+                            break;
+                        case 'dragonModal':
+                            nextDragonPick();
+                            break;
+                        case 'seatModal':
+                            randomSeatAssignment(true);
+                            break;
+                    }
+                }
+            };
+
+            // 添加键盘事件监听器
+            document.addEventListener('keydown', handleKeyDown);
+        }
+
+        function removeKeyboardListeners() {
+            // 移除键盘事件监听器
+            if (handleKeyDown) {
+                document.removeEventListener('keydown', handleKeyDown);
+            }
+        }
+
+        // 修改后的showModal函数
+        function showModal(modalId, message) {
+            const modal = document.getElementById(modalId);
+            modal.classList.add('show');
+            if (message) {
+                document.querySelector(`#${modalId} p`).innerHTML = message;
+            }
+            addKeyboardListeners(modalId);
+        }
+
+        // 修改后的closeModal函数
+        function closeModal(modalId) {
+            const modal = document.getElementById(modalId);
+            modal.classList.remove('show');
+            removeKeyboardListeners();
+
+            // 清除接龙状态
+            if (modalId === 'dragonModal') {
+                setTimeout(function () {
+                    document.getElementById('dragonCard').innerText = "请点击“下一位”开始抽选";
+                }, 300);
+            }
+        }
+
+        function pickOne() {
+            closeModal('oneModal');
+            highlightStudents([], true);
+            const randomIndex = Math.floor(Math.random() * students.length);
+            highlightStudents([randomIndex], false);
+            showModal('oneModal', `被选中的同学是：<br><strong class="names">${students[randomIndex]}</strong>`);
+        }
+        function showNumberSelection() {
+            selectedNumber = 0;
+            document.getElementById('selectedStudents').innerText = '';
+            document.getElementById('rePickButton').style.display = 'none';
+
+            // 确保显示选择人数的UI元素
+            showNumberSelectionUI();
+            showModal('multipleModal');
+        }
+
+        function randomSeatAssignment(refresh) {
+            if (students.length > 200) {
+                Swal.fire({
+                    icon: "error",
+                    title: "人数过多",
+                    confirmButtonColor: "#3085d6",
+                    text: "请确认人数少于200人后再使用随机选座功能！"
+                });
+                return;
+            } else {
+                const seatTable = document.getElementById('seatTable');
+                const columns = 8;
+                let rowsNeeded = Math.ceil(students.length / columns);
+
+                if (refresh || !seatTable.innerHTML.trim()) {
+                    seatTable.innerHTML = '';
+
+                    for (let row = 0; row < rowsNeeded; row++) {
+                        let tableRow = '<tr>';
+                        for (let col = 0; col < columns; col++) {
+                            tableRow += `<td></td>`;
+                        }
+                        tableRow += '</tr>';
+                        seatTable.innerHTML += tableRow;
+                    }
+
+                    // 修改后的洗牌逻辑
+                    let shuffledStudents = shuffleArray([...students]);
+
+                    let index = 0;
+                    const cells = seatTable.getElementsByTagName('td');
+                    for (let i = 0; i < cells.length && index < students.length; i++) {
+                        if (cells[i]) {
+                            cells[i].innerText = shuffledStudents[index++];
+                        }
+                    }
+                }
+
+                if (!refresh) {
+                    showModal('seatModal');
+                }
+            }
+        }
+        // 使用更科学的 Fisher-Yates 洗牌算法
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        // 修改洗牌部分
+
+        let currentShuffledStudents = []; // 存储当前轮次随机排序的数组
+        let currentIndex = 0;             // 当前抽取位置索引
+
+        function nextDragonPick() {
+            // 当需要开始新轮次时自动重置
+            if (currentIndex >= currentShuffledStudents.length) {
+                console.log("已开始新一轮抽选");
+                currentShuffledStudents = shuffleArray([...students]);
+                console.log(currentShuffledStudents);
+                currentIndex = 0;
+            }
+
+            const currentStudent = currentShuffledStudents[currentIndex];
+            currentIndex++;
+            document.getElementById('dragonCard').innerText = currentStudent;
+        }
+
+        // 修改键盘事件监听逻辑
+        function addKeyboardListeners(modalId) {
+            handleKeyDown = function (event) {
+                if (event.key === 'Enter' || event.key === 'ArrowDown') {
+                    switch (modalId) {
+                        case 'oneModal':
+                            pickOne();
+                            break;
+                        case 'multipleModal':
+                            pickMultiple();
+                            break;
+                        case 'seatModal':
+                            randomSeatAssignment(true);
+                            break;
+                        case 'dragonModal':
+                            nextDragonPick(); // 直接调用正常抽选逻辑
+                            break;
+                    }
+                }
+            };
+            document.addEventListener('keydown', handleKeyDown);
+        }
+
+        // 确保接龙入口函数正确初始化
+        function dragonPick() {
+            currentShuffledStudents = shuffleArray([...students]);
+            currentIndex = 0;
+            nextDragonPick();
+            showModal('dragonModal');
+        }
+        // 移除原来的populateDropdown函数，改为新的填充函数
+        function populateClassModal() {
+            const container = document.getElementById('classList');
+            container.innerHTML = '';
+
+            for (const className in predefinedClasses) {
+                const div = document.createElement('div');
+                div.className = 'class-item';
+                div.innerText = className;
+                div.onclick = () => {
+                    changeClass(className);
+                    closeModal('classModal');
+                };
+                container.appendChild(div);
+            }
+        }
+
+        // 新增显示班级模态框函数
+        function showClassModal() {
+            populateClassModal();
+            showModal('classModal');
+        }
+        function changeClass(className) {
+            if (predefinedClasses.hasOwnProperty(className)) {
+                students = predefinedClasses[className];
+                document.getElementById('className').innerText = className;
+                updateStudentCount();
+                renderStudents();
+                // 添加成功提示
+
+                const Toast = Swal.mixin({
+                    toast: true,
+                    position: "top",
+                    showConfirmButton: false,
+                    timer: 2000,
+                    timerProgressBar: true,
+                    didOpen: (toast) => {
+                        toast.onmouseenter = Swal.stopTimer;
+                        toast.onmouseleave = Swal.resumeTimer;
+                    }
+                });
+                Toast.fire({
+                    icon: "success",
+                    title: "班级切换成功"
+                });
+            } else {
+                Swal.fire({
+                    icon: "error",
+                    title: "系统内部错误",
+                    text: "班级不存在,请检查班级数据或联系管理员"
+                });
+            }
+        }
+
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            // 加载配置文件
+            const config = await window.electronAPI.loadConfig();
+            let hasValidConfig = false;
+
+            if (config && config.className && predefinedClasses[config.className]) {
+                students = predefinedClasses[config.className];
+                document.getElementById('className').innerText = config.className;
+                hasValidConfig = true;
+            } else {
+                // 如果没有有效配置，使用第一个预定义班级作为临时默认值
+                const defaultClass = Object.keys(predefinedClasses)[0] || '高一8班';
+                students = predefinedClasses[defaultClass] || [];
+                document.getElementById('className').innerText = defaultClass;
+            }
+
+            updateStudentCount();
+            renderStudents();
+
+            // 如果配置无效，显示班级选择模态框
+            if (!hasValidConfig) {
+                // 延迟确保DOM渲染完成
+                setTimeout(() => {
+                    showClassModal();
+                    Swal.fire({
+                        icon: "info",
+                        title: "请选择班级",
+                        text: "检测到您是首次使用或配置丢失，请先选择班级（注：如您希望直接导入名单，可直接关闭选择班级的对话框）",
+                        confirmButtonColor: "#3085d6"
+                    });
+                }, 100);
+            }
+        });
+        async function changeClass(className) {
+            if (predefinedClasses.hasOwnProperty(className)) {
+                // ...其他代码保持不变...
+                students = predefinedClasses[className];
+                document.getElementById('className').innerText = className;
+                updateStudentCount();
+                renderStudents();
+                // 保存配置
+                const success = await window.electronAPI.saveConfig(className);
+
+                const Toast = Swal.mixin({
+                    toast: true,
+                    position: "top",
+                    showConfirmButton: false,
+                    timer: 2000,
+                    timerProgressBar: true,
+                    didOpen: (toast) => {
+                        toast.onmouseenter = Swal.stopTimer;
+                        toast.onmouseleave = Swal.resumeTimer;
+                    }
+                });
+                Toast.fire({
+                    icon: "success",
+                    title: "班级切换成功"
+                });
+                // 保存配置
+                const result = await window.electronAPI.saveConfig(className);
+                if (!result.success) {
+                    Swal.fire({
+                        icon: "error",
+                        title: "保存失败",
+                        text: `无法保存配置: ${result.error || '未知错误'}`
+                    });
+                    return;
+                }
+
+                // 显示保存成功提示
+                Toast = Swal.mixin({
+                    toast: true,
+                    position: "top",
+                    showConfirmButton: false,
+                    timer: 2000,
+                    timerProgressBar: true,
+                    didOpen: (toast) => {
+                        toast.onmouseenter = Swal.stopTimer;
+                        toast.onmouseleave = Swal.resumeTimer;
+                    }
+                });
+
+                Toast.fire({
+                    icon: "success",
+                    title: result.isElevated ?
+                        "已通过管理员权限保存配置" :
+                        "配置保存成功"
+                });
+            } else {
+                Swal.fire({
+                    icon: "error",
+                    title: "系统内部错误",
+                    text: "班级不存在,请检查班级数据或联系管理员"
+                });
+            }
+
+        }
+        //禁止选中文本
+        document.onselectstart = function () { return false }
+
+        //Electron应用关闭处理
+        document.getElementById('minimize-btn').addEventListener('click', () => {
+            window.electron.send('window-minimize');
+        });
+
+        document.getElementById('maximize-btn').addEventListener('click', () => {
+            window.electron.send('window-maximize');
+        });
+
+        document.getElementById('close-btn').addEventListener('click', () => {
+            window.electron.send('window-close');
+        });
+    </script>
+    <script src="bootstrap.bundle.min.js"></script>
+    <script src="sweetalert2@11.js"></script>
+</body>
+
+</html>
