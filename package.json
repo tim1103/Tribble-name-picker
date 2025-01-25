@@ -2,10 +2,19 @@
   "name": "random",
   "version": "1.1.5",
   "main": "main.js",
+  "author": "tim1103",
+  "description": "随机点名工具",
+  "license": "GPL-3.0-only",
   "scripts": {
     "start": "electron .",
     "pack": "electron-builder --dir",
     "dist": "electron-builder"
+  },
+  "linux": {
+    "target": ["deb"],
+    "category": "Education",
+    "maintainer": "tim1103",
+    "description": "一个用于课堂随机点名的工具"
   },
   "build": {
     "appId": "com.tim1103.random",
