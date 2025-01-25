@@ -1,0 +1,48 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - v*
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]  # 仅保留 Linux 和 Windows
+        include:
+          - os: ubuntu-latest
+            target: linux-deb
+          - os: windows-latest
+            target: win
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js v22.12.0
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.12.0  # 指定 Node.js 版本
+
+      - name: Install Linux Dependencies
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y fuse
+
+      - name: Install Specific Versions
+        run: |
+          npm install electron@3.2.1 electron-builder@25.1.8  # 指定依赖版本
+
+      - name: Build
+        run: npm run dist
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload to Releases
+        uses: softprops/action-gh-release@v1
+        with:
+          files: dist/**/*  # 上传所有构建产物
+        if: github.ref_type == 'tag'  # 仅在标签推送时发布
