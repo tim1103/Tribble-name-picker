@@ -10,21 +10,23 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest]  # 仅保留 Linux 和 Windows
+        os: [ubuntu-latest, windows-latest]  # 只保留需要的系统
         include:
           - os: ubuntu-latest
-            target: linux-deb
+            platform: linux
+            target: deb
           - os: windows-latest
-            target: win
+            platform: win
+            target: nsis
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node.js v22.12.0
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 22.12.0  # 指定 Node.js 版本
+          node-version: 18.x
 
       - name: Install Linux Dependencies
         if: matrix.os == 'ubuntu-latest'
@@ -32,17 +34,40 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y fuse
 
-      - name: Install Specific Versions
-        run: |
-          npm install electron@3.2.1 electron-builder@25.1.8  # 指定依赖版本
+      - name: Install Dependencies
+        run: npm install
 
       - name: Build
         run: npm run dist
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Upload to Releases
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ matrix.platform }}-build
+          path: dist/
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Artifacts
+        uses: actions/download-artifact@v3
+        with:
+          path: artifacts
+
+      - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
-          files: dist/**/*  # 上传所有构建产物
-        if: github.ref_type == 'tag'  # 仅在标签推送时发布
+          tag_name: ${{ github.ref }}
+          name: Release ${{ github.ref_name }}
+          body: |
+            Automated build for version ${{ github.ref_name }}
+            - Linux DEB package
+            - Windows Installer
+          files: |
+            artifacts/linux-build/*.deb
+            artifacts/win-build/*.exe
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
