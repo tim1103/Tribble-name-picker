@@ -34,6 +34,19 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y fuse
 
+      - name: Fix Linux FUSE Permissions
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo modprobe fuse
+          sudo chmod 666 /dev/fuse
+          sudo chown root:root /dev/fuse
+
+      - name: Install Windows Build Tools
+        if: matrix.os == 'windows-latest'
+        run: |
+          npm install --global windows-build-tools
+          choco install -y python3 nsis
+    
       - name: Install Dependencies
         run: npm install
 
