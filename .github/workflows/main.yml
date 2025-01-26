@@ -38,5 +38,6 @@ jobs:
         name: builds-${{ matrix.os }}
         path: |
           dist/*.deb
+          dist/*.AppImage
           dist/*.exe
           dist/*.portable.exe
