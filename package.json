@@ -13,8 +13,14 @@
   "linux": {
     "target": ["deb"],
     "category": "Education",
+    "icon": "icons", 
     "maintainer": "tim1103",
-    "description": "一个用于课堂随机点名的工具"
+    "description": "一个用于课堂随机点名的工具，支持多种抽选模式和随机座位分配",
+    "desktop": {
+      "Name": "随机点名",
+      "Comment": "课堂随机点名工具",
+      "StartupWMClass": "random"
+    }
   },
   "build": {
     "appId": "com.tim1103.random",
