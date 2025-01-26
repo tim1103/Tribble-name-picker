@@ -4,32 +4,40 @@ const fs = require('fs');
 
 let mainWindow;
 // 在文件顶部添加配置文件路径
-const configPath = 'D:/RNPconfig.json';
+//const configPath = 'D:/RNPconfig.json';
+
+function getConfigPath() {
+  if (process.platform === 'win32') {
+    return 'D:/RNPconfig.json'; // Windows仍使用D盘
+  } else {
+    return path.join(app.getPath('userData'), 'RNPconfig.json'); // 非Windows使用userData
+  }
+}
 
 function createWindow() {
-    mainWindow = new BrowserWindow({
-        width: 1280,
-        height: 720,
-        minWidth: 1080,
-        minHeight: 180,
-        webPreferences: {
-            preload: path.join(__dirname, 'preload.js'), // 加载preload.js
-            nodeIntegration: false, // 禁用 nodeIntegration
-            contextIsolation: true, // 启用上下文隔离
-        },
-        frame: false, // 隐藏默认的窗口边框
-        titleBarStyle: 'hidden', // 隐藏标题栏
-        icon: path.join(__dirname, 'ico.ico'), ...(process.platform === 'linux' ? { icon: path.join(__dirname, 'linux-icon.png') } : {}),
-    });
+  mainWindow = new BrowserWindow({
+    width: 1280,
+    height: 720,
+    minWidth: 1080,
+    minHeight: 180,
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.js'), // 加载preload.js
+      nodeIntegration: false, // 禁用 nodeIntegration
+      contextIsolation: true, // 启用上下文隔离
+    },
+    frame: false, // 隐藏默认的窗口边框
+    titleBarStyle: 'hidden', // 隐藏标题栏
+    icon: path.join(__dirname, 'ico.ico'), ...(process.platform === 'linux' ? { icon: path.join(__dirname, 'linux-icon.png') } : {}),
+  });
 
-    mainWindow.loadFile('index.html'); // 加载HTML文件
-    mainWindow.maximize();
-    // 打开开发者工具（可选）
-    //mainWindow.webContents.openDevTools();
+  mainWindow.loadFile('index.html'); // 加载HTML文件
+  mainWindow.maximize();
+  // 打开开发者工具（可选）
+  //mainWindow.webContents.openDevTools();
 
-    mainWindow.on('closed', () => {
-        mainWindow = null;
-    });
+  mainWindow.on('closed', () => {
+    mainWindow = null;
+  });
 }
 
 //app.on('ready', createWindow);
@@ -39,9 +47,9 @@ app.whenReady().then(() => {
 
   // 注册 Ctrl+L/Command+L 快捷键
   globalShortcut.register('CommandOrControl+L', () => {
-      if (mainWindow) {
-          mainWindow.webContents.openDevTools();
-      }
+    if (mainWindow) {
+      mainWindow.webContents.openDevTools();
+    }
   });
 });
 
@@ -50,55 +58,55 @@ app.on('will-quit', () => {
   globalShortcut.unregisterAll();
 });
 app.on('window-all-closed', () => {
-    if (process.platform !== 'darwin') {
-        app.quit();
-    }
+  if (process.platform !== 'darwin') {
+    app.quit();
+  }
 });
 
 app.on('activate', () => {
-    if (mainWindow === null) {
-        createWindow();
-    }
+  if (mainWindow === null) {
+    createWindow();
+  }
 });
 
 // 处理窗口操作
 ipcMain.on('window-minimize', () => {
-    mainWindow.minimize();
+  mainWindow.minimize();
 });
 
 ipcMain.on('window-maximize', () => {
-    if (mainWindow.isMaximized()) {
-        mainWindow.unmaximize();
-    } else {
-        mainWindow.maximize();
-    }
+  if (mainWindow.isMaximized()) {
+    mainWindow.unmaximize();
+  } else {
+    mainWindow.maximize();
+  }
 });
 
 ipcMain.on('window-close', () => {
-    mainWindow.close();
+  mainWindow.close();
 });
 
 
 
 ipcMain.handle('load-config', () => {
-    try {
-        if (fs.existsSync(configPath)) {
-            const data = fs.readFileSync(configPath, 'utf8');
-            return JSON.parse(data);
-        }
-        return null;
-    } catch (error) {
-        console.error('读取配置失败:', error);
-        return null;
+  const configPath = getConfigPath(); // 动态获取路径
+  try {
+    if (fs.existsSync(configPath)) {
+      const data = fs.readFileSync(configPath, 'utf8');
+      return JSON.parse(data);
     }
+    return null;
+  } catch (error) {
+    console.error('读取配置失败:', error);
+    return null;
+  }
 });
 
 const sudo = require('sudo-prompt');
 
-// 修改保存配置的handler
 ipcMain.handle('save-config', async (event, className) => {
+  const configPath = getConfigPath(); // 动态获取路径
   const configData = JSON.stringify({ className });
-  
   // 普通写入尝试
   try {
     fs.writeFileSync(configPath, configData);
@@ -112,7 +120,7 @@ ipcMain.handle('save-config', async (event, className) => {
     // 权限不足时请求提升
     return new Promise((resolve) => {
       const elevatedCommand = `echo '${configData}' > "${configPath}"`;
-      
+
       sudo.exec(
         elevatedCommand,
         { name: '随机点名配置保存' },
