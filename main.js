@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain } = require('electron');
+const { app, BrowserWindow, ipcMain, globalShortcut } = require('electron');
 const path = require('path');
 const fs = require('fs');
 
@@ -19,21 +19,36 @@ function createWindow() {
         },
         frame: false, // 隐藏默认的窗口边框
         titleBarStyle: 'hidden', // 隐藏标题栏
-        icon: path.join(__dirname, 'ico.ico'), ...(process.platform === 'linux' ? { icon } : {}),
+        icon: path.join(__dirname, 'ico.ico'), ...(process.platform === 'linux' ? { icon: path.join(__dirname, 'linux-icon.png') } : {}),
     });
 
     mainWindow.loadFile('index.html'); // 加载HTML文件
     mainWindow.maximize();
     // 打开开发者工具（可选）
-    mainWindow.webContents.openDevTools();
+    //mainWindow.webContents.openDevTools();
 
     mainWindow.on('closed', () => {
         mainWindow = null;
     });
 }
 
-app.on('ready', createWindow);
+//app.on('ready', createWindow);
 
+app.whenReady().then(() => {
+  createWindow();
+
+  // 注册 Ctrl+L/Command+L 快捷键
+  globalShortcut.register('CommandOrControl+L', () => {
+      if (mainWindow) {
+          mainWindow.webContents.openDevTools();
+      }
+  });
+});
+
+// 应用退出时注销快捷键
+app.on('will-quit', () => {
+  globalShortcut.unregisterAll();
+});
 app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') {
         app.quit();
