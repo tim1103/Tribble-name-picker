@@ -295,7 +295,7 @@
         <h1 style="font-weight: bolder;">随机点名</h1>
 
         <div class="class-info">当前班级：<span id="className">高一8班</span>&ensp;总人数：<span id="studentCount">0人</span></div>
-        <!-- 原dropdown代码替换为 -->
+        <button onclick="showAboutModal()" class="btn btn-info">关于</button>
         <button onclick="showClassModal()" class="btn btn-info">选择班级</button>
         <button onclick="importList()" class="btn btn-info">导入名单</button>
         <div class="window-controls">
@@ -374,6 +374,18 @@
             <span class="close-btn" onclick="closeModal('classModal')">&times;</span>
             <h3 style="font-weight: bolder;">请选择班级</h3>
             <div id="classList" class="class-list-container"></div>
+        </div>
+    </div>
+    <div id="aboutModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal('aboutModal')">&times;</span>
+            <h3 style="font-weight: bolder;">版本信息</h3>
+            <div id="versionInfo" style="text-align: left; padding: 20px;">
+                <!--<p>应用版本: <span id="appVersion"></span></p>-->
+                <p>Node.js版本: <span id="nodeVersion"></span></p>
+                <p>Electron版本: <span id="electronVersion"></span></p>
+                <p>Chromium版本: <span id="chromeVersion"></span></p>
+            </div>
         </div>
     </div>
     <script src="sheet.js"></script>
@@ -871,6 +883,20 @@
 
         document.getElementById('close-btn').addEventListener('click', () => {
             window.electron.send('window-close');
+        });
+
+        //关于模态框
+        function showAboutModal() {
+            showModal('aboutModal');
+        }
+        // 在DOMContentLoaded事件中添加版本显示
+        document.addEventListener('DOMContentLoaded', async () => {
+            // 显示应用版本（从package.json获取）
+            //document.getElementById('appVersion').textContent = "v" + window.versions.app();
+            // 显示其他版本
+            document.getElementById('nodeVersion').textContent = window.versions.node();
+            document.getElementById('electronVersion').textContent = window.versions.electron();
+            document.getElementById('chromeVersion').textContent = window.versions.chrome();
         });
     </script>
     <script src="bootstrap.bundle.min.js"></script>
