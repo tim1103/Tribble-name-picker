@@ -121,7 +121,7 @@
             justify-content: space-around;
             align-items: center;
             background-color: #ffffff;
-            height: 60px;
+
         }
 
         .bottom-buttons button {
@@ -171,8 +171,10 @@
         }
 
         .number-button {
-            width: 2em;
-            height: 2em;
+            width: 2.2em;
+            height: 2.2em;
+            font-size: 2rem;
+            margin: 8px;
             border-radius: 50%;
             --bs-btn-padding-x: 0;
             --bs-btn-padding-y: 0;
@@ -224,6 +226,7 @@
             -webkit-app-region: no-drag;
             /* 按钮不可拖动 */
             cursor: pointer;
+            border-radius: 10px;
         }
 
         .window-controls {
@@ -232,7 +235,7 @@
         }
 
         .window-controls button {
-            background: #0d47a1;
+            background: rgba(0, 0, 0, 0);
             border: none;
             color: white;
             font-size: 18px;
@@ -416,7 +419,7 @@
             min-width: 80px;
             /* 替代固定宽度 */
             width: auto;
-            padding: 0 8px;
+            padding: 3px 8px 3px;
             white-space: nowrap;
             /* 防止按钮文字换行 */
         }
@@ -424,7 +427,6 @@
         .bottom-buttons {
             gap: 8px;
             padding: 10px;
-            flex-wrap: wrap;
         }
 
         .window-controls {
@@ -473,11 +475,12 @@
             border: none;
             background: none;
             border-radius: 0;
+            
         }
 
-        .nav-menu button:hover {
+        /*.nav-menu button:hover {
             background-color: #f8f9fa;
-        }
+        }*/
 
         @keyframes slideDown {
             from {
@@ -515,14 +518,188 @@
                 display: none !important;
             }
         }
+
+        /* 新增颜色变量 */
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3f37c9;
+            --accent-color: #4895ef;
+            --background: #f8f9fa;
+            --text-primary: #2b2d42;
+            --text-secondary: #8d99ae;
+        }
+
+        /* 整体背景和字体优化 */
+        body {
+            background: var(--background);
+            color: var(--text-primary);
+
+        }
+
+        /* 导航栏现代化改造 */
+        .navbar {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+
+            padding: 0 2rem;
+        }
+
+        .navbar h1 {
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        /* 主内容区卡片样式 */
+        .main-container {
+            background: transparent;
+            padding: 1.5rem;
+            gap: 1.2rem;
+        }
+
+        .student-box {
+            background: white;
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            transition: all 0.2s ease;
+            height: 50px;
+            font-size: 1rem;
+        }
+
+        /*.student-box:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+        }*/
+
+        .highlight {
+            background: var(--accent-color) !important;
+            color: white;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.02);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        /* 底部按钮组优化 */
+        .bottom-buttons {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(8px);
+            box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.05);
+            padding: 1rem;
+            gap: 1rem;
+        }
+
+        .bottom-buttons button {
+            border-radius: 10px;
+            padding: 0.8rem 1.5rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            min-width: 140px;
+            border: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        }
+
+        /* 模态框现代化 */
+        .modal-content {
+            border-radius: 15px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            border: none;
+            padding: 1.5rem;
+        }
+
+        .modal-content h3 {
+            color: var(--text-primary);
+            margin-bottom: 1.5rem;
+        }
+
+        .close-btn {
+            color: var(--text-secondary);
+            transition: all 0.2s ease;
+        }
+
+        /*.close-btn:hover {
+            color: var(--text-primary);
+            transform: rotate(90deg);
+        }*/
+
+        /* 表格优化 */
+        table {
+            border-radius: 12px;
+            overflow: hidden;
+            background: white;
+        }
+
+        th {
+            background: var(--primary-color);
+            color: white !important;
+            font-weight: 600;
+        }
+
+        td {
+            background: rgba(248, 249, 250, 0.8);
+            backdrop-filter: blur(4px);
+        }
+
+        /* 响应式优化 */
+        @media (max-width: 768px) {
+            .navbar {
+                padding: 0 1rem;
+                height: 60px;
+            }
+
+            .navbar h1 {
+                font-size: 1.4rem;
+            }
+
+            .student-box {
+                height: 60px;
+                font-size: 1rem;
+            }
+
+            .bottom-buttons button {
+                width: 100%;
+                padding: 0.8rem;
+                font-size: 0.95rem;
+            }
+        }
+
+        /* 窗口控制按钮美化 */
+        .window-controls button {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
     </style>
 </head>
 
 <body>
     <div class="navbar">
-        <h1 style="font-weight: bolder;">随机点名</h1>
-        <div class="class-info">
-            当前班级：<span id="className">高一8班</span>&ensp;总人数：<span id="studentCount">0人</span>
+        <div class="d-flex align-items-center gap-3">
+            <h1 style="color: white;">🎯 随机点名</h1>
+            <div class="class-info text-light opacity-85">
+                <span id="className">高一8班</span>
+                <span class="mx-2">|</span>
+                <span id="studentCount">0人</span>
+            </div>
         </div>
         <!-- 新增折叠菜单 -->
         <div class="nav-collapse">
@@ -539,7 +716,7 @@
             </button>
         </div>
 
-        <div class="window-controls">
+        <div class="window-controls d-flex align-items-center gap-2">
             <button class="controlbutton" id="minimize-btn"><svg xmlns="http://www.w3.org/2000/svg" width="16"
                     height="16" fill="currentColor" class="bi bi-dash-lg" viewBox="0 0 16 16">
                     <path fill-rule="evenodd" d="M2 8a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11A.5.5 0 0 1 2 8Z" />
@@ -619,7 +796,7 @@
             <h3 style="font-weight: bolder;">版本信息</h3>
             <div id="versionInfo" style="text-align: left; padding: 20px;">
                 <p>Config 1.1.0[250127]</p>
-                <p>H5 3.6.1[250202]</p>
+                <p>H5 3.6.3[250202]</p>
                 <p>Node.js版本: <span id="nodeVersion"></span></p>
                 <p>Electron版本: <span id="electronVersion"></span></p>
                 <p>Chromium版本: <span id="chromeVersion"></span></p>
