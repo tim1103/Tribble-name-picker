@@ -431,22 +431,114 @@
             flex-shrink: 0;
             /* 防止窗口控制按钮被压缩 */
         }
+
+        /* 新增折叠菜单样式 */
+        .nav-collapse {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .nav-menu-toggle {
+            width: 40px;
+            height: 40px;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .nav-menu {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            min-width: 160px;
+            z-index: 1000;
+            display: none;
+        }
+
+        .nav-menu.show {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+
+        .nav-menu button {
+            width: 100%;
+            text-align: left;
+            padding: 8px 16px;
+            border: none;
+            background: none;
+            border-radius: 0;
+        }
+
+        .nav-menu button:hover {
+            background-color: #f8f9fa;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* 修改原有媒体查询 */
+        @media (max-width: 700px) {
+            .class-info {
+                order: 3;
+                width: 100%;
+                text-align: center;
+                font-size: 0.9rem;
+                margin-top: 8px;
+            }
+
+            .nav-buttons {
+                display: none !important;
+            }
+
+            .nav-menu-toggle {
+                display: flex !important;
+            }
+        }
+
+        @media (min-width: 700px) {
+            .nav-menu {
+                display: none !important;
+            }
+        }
     </style>
 </head>
 
 <body>
     <div class="navbar">
         <h1 style="font-weight: bolder;">随机点名</h1>
-
-        <div class="class-info d-none d-md-block">
+        <div class="class-info">
             当前班级：<span id="className">高一8班</span>&ensp;总人数：<span id="studentCount">0人</span>
         </div>
+        <!-- 新增折叠菜单 -->
+        <div class="nav-collapse">
+            <!-- 原有按钮组 -->
+            <div class="nav-buttons d-none d-md-flex">
+                <button onclick="showAboutModal()" class="btn btn-info">关于</button>
+                <button onclick="showClassModal()" class="btn btn-info">选择班级</button>
+                <button onclick="importList()" class="btn btn-info">导入名单</button>
+            </div>
 
-        <div class="d-flex flex-nowrap">
-            <button onclick="showAboutModal()" class="btn btn-info">关于</button>
-            <button onclick="showClassModal()" class="btn btn-info">选择班级</button>
-            <button onclick="importList()" class="btn btn-info">导入名单</button>
+            <!-- 折叠菜单按钮 -->
+            <button class="nav-menu-toggle btn btn-info d-md-none toggleNavMenu" onclick="toggleNavMenu()">
+                设置
+            </button>
         </div>
+
         <div class="window-controls">
             <button class="controlbutton" id="minimize-btn"><svg xmlns="http://www.w3.org/2000/svg" width="16"
                     height="16" fill="currentColor" class="bi bi-dash-lg" viewBox="0 0 16 16">
@@ -466,10 +558,10 @@
     </div>
     <div class="main-container" id="studentContainer"></div>
     <div class="bottom-buttons">
-            <button onclick="pickOne()" class="btn btn-lg btn-primary col-12 col-sm-auto">抽取一人</button>
-            <button onclick="showNumberSelection()" class="btn btn-lg btn-success col-12 col-sm-auto">抽取多人</button>
-            <button onclick="dragonPick()" class="btn btn-lg btn-warning col-12 col-sm-auto">接龙抽选</button>
-            <button onclick="randomSeatAssignment()" class="btn btn-lg btn-info col-12 col-sm-auto">随机选座</button>
+        <button onclick="pickOne()" class="btn btn-lg btn-primary col-12 col-sm-auto">抽取一人</button>
+        <button onclick="showNumberSelection()" class="btn btn-lg btn-success col-12 col-sm-auto">抽取多人</button>
+        <button onclick="dragonPick()" class="btn btn-lg btn-warning col-12 col-sm-auto">接龙抽选</button>
+        <button onclick="randomSeatAssignment()" class="btn btn-lg btn-info col-12 col-sm-auto">随机选座</button>
     </div>
     <!-- 模态框模板 -->
     <div id="seatModal" class="modal">
@@ -1015,6 +1107,42 @@
             }
 
         }
+
+        // 新增菜单切换功能
+        function toggleNavMenu() {
+            const menu = document.querySelector('.nav-menu');
+            menu.classList.toggle('show');
+
+            // 点击外部关闭菜单
+            if (menu.classList.contains('show')) {
+                document.addEventListener('click', closeMenuOnClickOutside);
+            } else {
+                document.removeEventListener('click', closeMenuOnClickOutside);
+            }
+        }
+
+        function closeMenuOnClickOutside(event) {
+            const menu = document.querySelector('.nav-menu');
+            const toggleButton = document.querySelector('.nav-menu-toggle');
+
+            if (!menu.contains(event.target) && !toggleButton.contains(event.target)) {
+                menu.classList.remove('show');
+                document.removeEventListener('click', closeMenuOnClickOutside);
+            }
+        }
+
+        // 在DOM加载时插入菜单
+        document.addEventListener('DOMContentLoaded', () => {
+            const navCollapse = document.querySelector('.nav-collapse');
+            const menu = document.createElement('div');
+            menu.className = 'nav-menu';
+            menu.innerHTML = `
+        <button onclick="showAboutModal()">关于</button>
+        <button onclick="showClassModal()">选择班级</button>
+        <button onclick="importList()">导入名单</button>
+    `;
+            navCollapse.appendChild(menu);
+        });
         //禁止选中文本
         document.onselectstart = function () { return false }
 

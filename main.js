@@ -18,7 +18,7 @@ function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1280,
     height: 720,
-    minWidth: 1080,
+    minWidth: 520,
     minHeight: 180,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'), // 加载preload.js
