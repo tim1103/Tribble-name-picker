@@ -1,6 +1,9 @@
 name: Build and Release
 
-on: workflow_dispatch
+# 修改触发条件：当创建新 Release 时触发
+on:
+  release:
+    types: [created]
 
 jobs:
   build:
@@ -10,21 +13,24 @@ jobs:
         os: [ubuntu-latest, windows-latest]
     
     steps:
-    - name: Checkout code
+    - name: Checkout code（包含 Release 信息）
       uses: actions/checkout@v3
+      with:
+        # 必须启用深层克隆以获取 Release 元数据
+        fetch-depth: 0
 
     - name: Setup Node.js
       uses: actions/setup-node@v3
       with:
         node-version: 18.x
 
-    - name: Install dependencies (Linux)
+    - name: Install Linux dependencies
       if: matrix.os == 'ubuntu-latest'
       run: |
         sudo apt-get update
         sudo apt-get install -y fakeroot dpkg
 
-    - name: Install dependencies
+    - name: Install project dependencies
       run: npm install
 
     - name: Build app
@@ -32,12 +38,15 @@ jobs:
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Upload artifacts
-      uses: actions/upload-artifact@v3
+    - name: Upload assets to Release
+      # 使用官方 Release Action 上传文件到当前 Release
+      uses: softprops/action-gh-release@v1
       with:
-        name: builds-${{ matrix.os }}
-        path: |
+        # 上传所有构建产物
+        files: |
           dist/*.deb
           dist/*.AppImage
           dist/*.exe
           dist/*.portable.exe
+      # 确保只有最终构建步骤运行此操作（避免重复上传）
+      if: ${{ github.event.action == 'published' && matrix.os == 'ubuntu-latest' }}
