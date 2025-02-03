@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <style>
+    body {
+      margin: 0;
+      background: transparent;
+    }
+
+    .overlay {
+      width: 50px;
+      height: 50px;
+      background: #2196F3;
+      border-radius: 50%;
+      cursor: pointer;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.2s;
+    }
+
+    .icon {
+      color: white;
+      font-size: 24px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="overlay">
+    <div class="icon">↩</div>
+  </div>
+</body>
+<script>
+   document.addEventListener('DOMContentLoaded', () => {
+      document.querySelector('.overlay').addEventListener('click', () => {
+        // 通过预加载脚本暴露的API调用
+        window.overlayAPI.restoreMain();
+      });
+    });
+</script>
+
+</html>

@@ -29,3 +29,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
     loadConfig: () => ipcRenderer.invoke('load-config')
 });
   
+contextBridge.exposeInMainWorld('overlayAPI', {
+  restoreMain: () => ipcRenderer.send('restore-main-window')
+});

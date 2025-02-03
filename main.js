@@ -14,31 +14,7 @@ function getConfigPath() {
   }
 }
 
-function createWindow() {
-  mainWindow = new BrowserWindow({
-    width: 1280,
-    height: 720,
-    minWidth: 520,
-    minHeight: 180,
-    webPreferences: {
-      preload: path.join(__dirname, 'preload.js'), // 加载preload.js
-      nodeIntegration: false, // 禁用 nodeIntegration
-      contextIsolation: true, // 启用上下文隔离
-    },
-    frame: false, // 隐藏默认的窗口边框
-    titleBarStyle: 'hidden', // 隐藏标题栏
-    icon: path.join(__dirname, 'ico.ico'), ...(process.platform === 'linux' ? { icon: path.join(__dirname, 'linux-icon.png') } : {}),
-  });
 
-  mainWindow.loadFile('index.html'); // 加载HTML文件
-  mainWindow.maximize();
-  // 打开开发者工具（可选）
-  //mainWindow.webContents.openDevTools();
-
-  mainWindow.on('closed', () => {
-    mainWindow = null;
-  });
-}
 
 //app.on('ready', createWindow);
 
@@ -135,4 +111,110 @@ ipcMain.handle('save-config', async (event, className) => {
       );
     });
   }
+});
+
+let overlayWindow = null;
+function createOverlayWindow() {
+  overlayWindow = new BrowserWindow({
+    width: 60,
+    height: 60,
+    transparent: true,
+    frame: false,
+    alwaysOnTop: true,
+    resizable: false,
+    webPreferences: {
+      contextIsolation: true, // 启用上下文隔离
+      nodeIntegration: false, // 禁用nodeIntegration
+      preload: path.join(__dirname, 'preload.js'),// 加载preload.js
+    }
+  });
+
+  overlayWindow.loadFile('overlay.html');
+  overlayWindow.setIgnoreMouseEvents(false);
+  //打开开发者工具
+  //overlayWindow.webContents.openDevTools();
+  // 修改点击事件处理逻辑
+  const position = mainWindow.getPosition();
+  overlayWindow.setPosition(position[0] + 100, position[1] + 50);
+}
+
+
+function createWindow() {
+  mainWindow = new BrowserWindow({
+    width: 1280,
+    height: 720,
+    minWidth: 520,
+    minHeight: 180,
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.js'), // 加载preload.js
+      nodeIntegration: false, // 禁用 nodeIntegration
+      contextIsolation: true, // 启用上下文隔离
+    },
+    frame: false, // 隐藏默认的窗口边框
+    titleBarStyle: 'hidden', // 隐藏标题栏
+    icon: path.join(__dirname, 'ico.ico'), ...(process.platform === 'linux' ? { icon: path.join(__dirname, 'linux-icon.png') } : {}),
+  });
+
+  mainWindow.loadFile('index.html'); // 加载HTML文件
+  mainWindow.maximize();
+  // 打开开发者工具（可选）
+  //mainWindow.webContents.openDevTools();
+
+  mainWindow.on('closed', () => {
+    mainWindow = null;
+
+  });
+
+  // 添加窗口焦点监听
+  mainWindow.on('focus', () => {
+    if (overlayWindow) {
+      overlayWindow.hide();
+    }
+  });
+
+  mainWindow.on('blur', () => {
+    if (!overlayWindow) {
+      createOverlayWindow();
+    }
+    overlayWindow.show();
+  });
+
+  // 窗口移动时更新悬浮窗位置
+  mainWindow.on('moved', () => {
+    if (overlayWindow) {
+      const position = mainWindow.getPosition();
+      overlayWindow.setPosition(position[0] + 100, position[1] + 50);
+    }
+  });
+
+  // 窗口关闭时销毁悬浮窗
+  mainWindow.on('closed', () => {
+    if (overlayWindow) {
+      overlayWindow.close();
+      overlayWindow = null;
+    }
+  });
+}
+// 删除重复的ipcMain.on('restore-main-window')，只保留以下版本
+ipcMain.on('restore-main-window', () => {
+  if (!mainWindow) return;
+  
+  if (mainWindow.isMinimized()) {
+    mainWindow.restore();
+  }
+  
+  if (!mainWindow.isVisible()) {
+    mainWindow.show();
+  }
+
+  // Windows专用聚焦逻辑
+  if (process.platform === 'win32') {
+    mainWindow.setAlwaysOnTop(true);
+    mainWindow.focus();
+    mainWindow.setAlwaysOnTop(false);
+  } else {
+    mainWindow.focus();
+  }
+  
+  mainWindow.moveTop();
 });
