@@ -116,11 +116,12 @@ ipcMain.handle('save-config', async (event, className) => {
 let overlayWindow = null;
 function createOverlayWindow() {
   overlayWindow = new BrowserWindow({
-    width: 60,
+    width: 90,
     height: 60,
     transparent: true,
     frame: false,
     alwaysOnTop: true,
+    skipTaskbar: true,
     resizable: false,
     webPreferences: {
       contextIsolation: true, // 启用上下文隔离

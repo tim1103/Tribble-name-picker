@@ -9,10 +9,10 @@
     }
 
     .overlay {
-      width: 50px;
+      width: 90px;
       height: 50px;
       background: #2196F3;
-      border-radius: 50%;
+      border-radius: 25px;
       cursor: pointer;
       box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
       display: flex;
@@ -23,23 +23,40 @@
 
     .icon {
       color: white;
-      font-size: 24px;
+      margin-left: -1px;
+    }
+
+    .drag {
+      -webkit-app-region: drag;
+      margin-left: -7px;
     }
   </style>
 </head>
 
 <body>
+
   <div class="overlay">
-    <div class="icon">↩</div>
+    <div class="drag" style="color: rgb(255, 255, 255);"><svg xmlns="http://www.w3.org/2000/svg" width="35" height="35" fill="currentColor" class="bi bi-grip-vertical" viewBox="0 0 16 16">
+      <path d="M7 2a1 1 0 1 1-2 0 1 1 0 0 1 2 0m3 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0M7 5a1 1 0 1 1-2 0 1 1 0 0 1 2 0m3 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0M7 8a1 1 0 1 1-2 0 1 1 0 0 1 2 0m3 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0m-3 3a1 1 0 1 1-2 0 1 1 0 0 1 2 0m3 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0m-3 3a1 1 0 1 1-2 0 1 1 0 0 1 2 0m3 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0"/>
+    </svg></div>
+    <div class="icon" style="color: rgb(255, 255, 255);">
+      <svg xmlns="http://www.w3.org/2000/svg" width="35" height="35" fill="currentColor" class="bi bi-aspect-ratio"
+        viewBox="0 0 16 16">
+        <path
+          d="M0 3.5A1.5 1.5 0 0 1 1.5 2h13A1.5 1.5 0 0 1 16 3.5v9a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 0 12.5zM1.5 3a.5.5 0 0 0-.5.5v9a.5.5 0 0 0 .5.5h13a.5.5 0 0 0 .5-.5v-9a.5.5 0 0 0-.5-.5z" />
+        <path
+          d="M2 4.5a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1H3v2.5a.5.5 0 0 1-1 0zm12 7a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1 0-1H13V8.5a.5.5 0 0 1 1 0z" />
+      </svg>
+    </div>
   </div>
 </body>
 <script>
-   document.addEventListener('DOMContentLoaded', () => {
-      document.querySelector('.overlay').addEventListener('click', () => {
-        // 通过预加载脚本暴露的API调用
-        window.overlayAPI.restoreMain();
-      });
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelector('.overlay').addEventListener('click', () => {
+      // 通过预加载脚本暴露的API调用
+      window.overlayAPI.restoreMain();
     });
+  });
 </script>
 
 </html>
