@@ -1,9 +1,9 @@
 name: Build and Release
 
-# 修改触发条件：当创建新 Release 时触发
 on:
-  release:
-    types: [created]
+  push:
+    tags:
+      - '*'  # 监听所有新tag的推送
 
 jobs:
   build:
@@ -13,11 +13,10 @@ jobs:
         os: [ubuntu-latest, windows-latest]
     
     steps:
-    - name: Checkout code（包含 Release 信息）
+    - name: Checkout code
       uses: actions/checkout@v3
       with:
-        # 必须启用深层克隆以获取 Release 元数据
-        fetch-depth: 0
+        fetch-depth: 0  # 获取完整的git历史记录（包含tag信息）
 
     - name: Setup Node.js
       uses: actions/setup-node@v3
@@ -38,15 +37,16 @@ jobs:
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Upload assets to Release
-      # 使用官方 Release Action 上传文件到当前 Release
+    - name: Create Release and Upload Assets
       uses: softprops/action-gh-release@v1
       with:
-        # 上传所有构建产物
+        tag_name: ${{ github.ref_name }}  # 使用推送的tag名称
+        name: Release ${{ github.ref_name }}
+        body: |  # 可自定义Release描述
+          Auto-generated release for tag ${{ github.ref_name }}
         files: |
           dist/*.deb
           dist/*.AppImage
           dist/*.exe
           dist/*.portable.exe
-      # 确保只有最终构建步骤运行此操作（避免重复上传）
-      if: ${{ github.event.action == 'published' && matrix.os == 'ubuntu-latest' }}
+      if: matrix.os == 'ubuntu-latest'  # 仅在Ubuntu环境上传（避免重复）
