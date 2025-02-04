@@ -16,7 +16,7 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
       with:
-        fetch-depth: 0
+        fetch-depth: 0  # 获取完整的git历史记录（包含tag信息）
 
     - name: Setup Node.js
       uses: actions/setup-node@v3
@@ -37,33 +37,21 @@ jobs:
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Upload Build Artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: binaries-${{ matrix.os }}
-        path: |
-          dist/
-          !dist/node_modules/  # 排除无关文件
-
-  release:
-    needs: build  # 等待所有build任务完成
-    runs-on: ubuntu-latest
-    steps:
-    - name: Download All Artifacts
-      uses: actions/download-artifact@v4
-      with:
-        path: _artifacts
-
     - name: Create Release and Upload Assets
       uses: softprops/action-gh-release@v1
       with:
-        tag_name: ${{ github.ref_name }}
+        tag_name: ${{ github.ref_name }}  # 使用推送的tag名称
         name: Release ${{ github.ref_name }}
-        body: |
+        body: |  # 可自定义Release描述
           Auto-generated release for tag ${{ github.ref_name }}
-          Includes cross-platform binaries.
+          Build artifacts:
+          - Debian Package (.deb)
+          - AppImage
+          - Windows Installer (.exe)
+          - Portable Version (.portable.exe)
         files: |
-          _artifacts/binaries-ubuntu-latest/dist/*.deb
-          _artifacts/binaries-ubuntu-latest/dist/*.AppImage
-          _artifacts/binaries-windows-latest/dist/*.exe
-          _artifacts/binaries-windows-latest/dist/*.portable.exe
+          dist/*.deb
+          dist/*.AppImage
+          dist/*.exe
+          dist/*.portable.exe
+      if: matrix.os == 'ubuntu-latest'  # 仅在Ubuntu环境上传（避免重复）
