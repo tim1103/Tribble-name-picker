@@ -1,27 +1,24 @@
-const { app, BrowserWindow, ipcMain, globalShortcut } = require('electron');
+// 在文件顶部添加screen模块
+const { app, BrowserWindow, ipcMain, globalShortcut, screen } = require('electron');
 const path = require('path');
 const fs = require('fs');
 
 let mainWindow;
-// 在文件顶部添加配置文件路径
-//const configPath = 'D:/RNPconfig.json';
 
+// 配置文件路径判断
 function getConfigPath() {
   if (process.platform === 'win32') {
-    return 'D:/RNPconfig.json'; // Windows仍使用D盘
+    return 'D:/RNPconfig.json'; // Windows使用D盘
   } else {
     return path.join(app.getPath('userData'), 'RNPconfig.json'); // 非Windows使用userData
   }
 }
 
 
-
-//app.on('ready', createWindow);
-
 app.whenReady().then(() => {
   createWindow();
 
-  // 注册 Ctrl+L/Command+L 快捷键
+  // 注册 Ctrl+L/Command+L 快捷键（控制台）
   globalShortcut.register('CommandOrControl+L', () => {
     if (mainWindow) {
       mainWindow.webContents.openDevTools();
@@ -44,6 +41,7 @@ app.on('activate', () => {
     createWindow();
   }
 });
+
 
 // 处理窗口操作
 ipcMain.on('window-minimize', () => {
@@ -114,6 +112,7 @@ ipcMain.handle('save-config', async (event, className) => {
 });
 
 let overlayWindow = null;
+//创建悬浮窗
 function createOverlayWindow() {
   overlayWindow = new BrowserWindow({
     width: 90,
@@ -132,11 +131,19 @@ function createOverlayWindow() {
 
   overlayWindow.loadFile('overlay.html');
   overlayWindow.setIgnoreMouseEvents(false);
+
+  const primaryDisplay = screen.getPrimaryDisplay();
+  const { width, height } = primaryDisplay.workAreaSize;
+  const overlayWidth = 120;
+  const overlayHeight = 90;
+  
+  // 设置窗口到右下角
+  overlayWindow.setPosition(
+    width - overlayWidth,
+    height - overlayHeight
+  );
   //打开开发者工具
   //overlayWindow.webContents.openDevTools();
-  // 修改点击事件处理逻辑
-  const position = mainWindow.getPosition();
-  overlayWindow.setPosition(position[0] + 100, position[1] + 50);
 }
 
 
@@ -180,13 +187,6 @@ function createWindow() {
     overlayWindow.show();
   });
 
-  // 窗口移动时更新悬浮窗位置
-  mainWindow.on('moved', () => {
-    if (overlayWindow) {
-      const position = mainWindow.getPosition();
-      overlayWindow.setPosition(position[0] + 100, position[1] + 50);
-    }
-  });
 
   // 窗口关闭时销毁悬浮窗
   mainWindow.on('closed', () => {
@@ -196,6 +196,8 @@ function createWindow() {
     }
   });
 }
+
+
 // 删除重复的ipcMain.on('restore-main-window')，只保留以下版本
 ipcMain.on('restore-main-window', () => {
   if (!mainWindow) return;

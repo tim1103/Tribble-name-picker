@@ -192,7 +192,7 @@
         table,
         th,
         td {
-            border: 1px solid black;
+            border: 1.5px solid #484848;
         }
 
         /* 设置表格宽度为100%，并且使边框合并 */
@@ -475,12 +475,8 @@
             border: none;
             background: none;
             border-radius: 0;
-            
-        }
 
-        /*.nav-menu button:hover {
-            background-color: #f8f9fa;
-        }*/
+        }
 
         @keyframes slideDown {
             from {
@@ -567,11 +563,6 @@
             font-size: 1rem;
         }
 
-        /*.student-box:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
-        }*/
-
         .highlight {
             background: var(--accent-color) !important;
             color: white;
@@ -632,10 +623,6 @@
             transition: all 0.2s ease;
         }
 
-        /*.close-btn:hover {
-            color: var(--text-primary);
-            transform: rotate(90deg);
-        }*/
 
         /* 表格优化 */
         table {
@@ -651,8 +638,7 @@
         }
 
         td {
-            background: rgba(248, 249, 250, 0.8);
-            backdrop-filter: blur(4px);
+            background: rgba(237, 237, 238, 0.8);
         }
 
         /* 响应式优化 */
@@ -922,66 +908,11 @@
 
         // 假设 predefinedClasses 已定义并包含了所有班级和学生名单
 
-        function populateDropdown() {
-            const dropdownMenu = document.querySelector('.dropdown-menu');
-            for (const className in predefinedClasses) {
-                const li = document.createElement('li');
-                const button = document.createElement('button');
-                button.className = 'dropdown-item';
-                button.type = 'button';
-                button.innerText = className;
-                button.onclick = function () { changeClass(className); };
-                li.appendChild(button);
-                dropdownMenu.appendChild(li);
-            }
-        }
 
-        function changeClass(className) {
-            if (predefinedClasses.hasOwnProperty(className)) {
-                students = predefinedClasses[className];
-                document.getElementById('className').innerText = className;
-                updateStudentCount();
-                renderStudents();
-                const seatTable = document.getElementById('seatTable');
-                seatTable.innerHTML = ''; // 清空现有表格内容
-            } else {
-                //alert("班级不存在，请重新输入");
-                Swal.fire({
-                    icon: "error",
-                    title: "班级不存在",
-                    confirmButtonColor: "#3085d6",
-                    text: "请尝试重新导入名单！"
-                });
-            }
-        }
 
         // 全局定义 handleKeyDown 函数
         let handleKeyDown;
 
-        function addKeyboardListeners(modalId) {
-            // 定义 handleKeyDown 函数
-            handleKeyDown = function (event) {
-                if (event.key === 'Enter' || event.key === 'ArrowDown' || event.key === 'PageDown') {
-                    switch (modalId) {
-                        case 'oneModal':
-                            pickOne();
-                            break;
-                        case 'multipleModal':
-                            pickMultiple();
-                            break;
-                        case 'dragonModal':
-                            nextDragonPick();
-                            break;
-                        case 'seatModal':
-                            randomSeatAssignment(true);
-                            break;
-                    }
-                }
-            };
-
-            // 添加键盘事件监听器
-            document.addEventListener('keydown', handleKeyDown);
-        }
 
         function removeKeyboardListeners() {
             // 移除键盘事件监听器
@@ -1104,8 +1035,9 @@
 
         // 修改键盘事件监听逻辑
         function addKeyboardListeners(modalId) {
+            removeKeyboardListeners(); // 先移除旧的
             handleKeyDown = function (event) {
-                if (event.key === 'Enter' || event.key === 'ArrowDown') {
+                if (event.key === 'Enter' || event.key === 'ArrowDown' || event.key === 'PageDown') {
                     switch (modalId) {
                         case 'oneModal':
                             pickOne();
@@ -1132,6 +1064,7 @@
             nextDragonPick();
             showModal('dragonModal');
         }
+
         // 移除原来的populateDropdown函数，改为新的填充函数
         function populateClassModal() {
             const container = document.getElementById('classList');
@@ -1222,7 +1155,6 @@
         });
         async function changeClass(className) {
             if (predefinedClasses.hasOwnProperty(className)) {
-                // ...其他代码保持不变...
                 students = predefinedClasses[className];
                 document.getElementById('className').innerText = className;
                 updateStudentCount();
