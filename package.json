@@ -1,9 +1,9 @@
 {
   "name": "random",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "main": "main.js",
   "author": "tim1103",
-  "description": "随机点名工具",
+  "description": "一个用于课堂随机点名的工具，支持多种抽选模式",
   "license": "GPL-3.0-only",
   "scripts": {
     "start": "electron .",

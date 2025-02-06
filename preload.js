@@ -7,19 +7,20 @@ contextBridge.exposeInMainWorld('electron', {
     on: (channel, func) => ipcRenderer.on(channel, (event, ...args) => func(...args)),
 });
 
-
+//版本显示相关API
 contextBridge.exposeInMainWorld('versions', {
   node: () => process.versions.node,
   chrome: () => process.versions.chrome,
   electron: () => process.versions.electron
 });
 
-
+//保存配置相关API
 contextBridge.exposeInMainWorld('electronAPI', {
     saveConfig: (className) => ipcRenderer.invoke('save-config', className),
     loadConfig: () => ipcRenderer.invoke('load-config')
 });
-  
+
+//悬浮窗相关API
 contextBridge.exposeInMainWorld('overlayAPI', {
   restoreMain: () => ipcRenderer.send('restore-main-window')
 });

@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>关于</title>
+    <link href="bootstrap.min.css" rel="stylesheet">
+    <style>
+        @font-face {
+            font-family: 'HarmonyOS Sans SC';
+            src: url('fonts/HarmonyOS Sans SC Thin.ttf') format('truetype');
+            font-weight: 100;
+            font-style: normal;
+        }
+
+        @font-face {
+            font-family: 'HarmonyOS Sans SC';
+            src: url('fonts/HarmonyOS Sans SC Light.ttf') format('truetype');
+            font-weight: 300;
+            font-style: normal;
+        }
+
+        @font-face {
+            font-family: 'HarmonyOS Sans SC';
+            src: url('fonts/HarmonyOS Sans SC Regular.ttf') format('truetype');
+            font-weight: 400;
+            font-style: normal;
+        }
+
+        @font-face {
+            font-family: 'HarmonyOS Sans SC';
+            src: url('fonts/HarmonyOS Sans SC Medium.ttf') format('truetype');
+            font-weight: 500;
+            font-style: normal;
+        }
+
+        @font-face {
+            font-family: 'HarmonyOS Sans SC';
+            src: url('fonts/HarmonyOS Sans SC Bold.ttf') format('truetype');
+            font-weight: 700;
+            font-style: normal;
+        }
+
+        @font-face {
+            font-family: 'HarmonyOS Sans SC';
+            src: url('fonts/HarmonyOS Sans SC Black.ttf') format('truetype');
+            font-weight: 900;
+            font-style: normal;
+        }
+
+        * {
+            font-family: 'HarmonyOS Sans', sans-serif;
+        }
+
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3f37c9;
+            --accent-color: #4895ef;
+            --background: #f8f9fa;
+            --text-primary: #2b2d42;
+            --text-secondary: #8d99ae;
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #0d47a1;
+            color: white;
+            padding: 0 20px;
+            height: 60px;
+        }
+
+        .navbar h1 {
+            margin: 0;
+            font-size: 24px;
+            font-family: 'HarmonyOS Sans', sans-serif;
+            flex-grow: 1;
+        }
+
+        .navbar .class-info {
+            font-size: 18px;
+        }
+
+        .navbar button {
+            width: 120px;
+            height: 40px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+
+        .navbar {
+            -webkit-app-region: drag;
+            /* 让导航栏可拖动 */
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #0d47a1;
+            color: white;
+            padding: 0 20px;
+            height: 60px;
+        }
+
+        /*供electron完成拖动逻辑*/
+        .navbar button {
+            -webkit-app-region: no-drag;
+            /* 按钮不可拖动 */
+            cursor: pointer;
+            border-radius: 10px;
+        }
+
+        .navbar {
+            gap: 8px;
+            /* 添加间距 */
+            padding: 0 10px;
+        }
+
+        .navbar>button {
+            min-width: 80px;
+            /* 替代固定宽度 */
+            width: auto;
+            padding: 3px 8px 3px;
+            white-space: nowrap;
+            /* 防止按钮文字换行 */
+        }
+
+        .bottom-buttons {
+            gap: 8px;
+            padding: 10px;
+        }
+
+        /* 新增折叠菜单样式 */
+        .nav-collapse {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .nav-menu button {
+            width: 100%;
+            text-align: left;
+            padding: 8px 16px;
+            border: none;
+            background: none;
+            border-radius: 0;
+
+        }
+
+        .navbar {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+
+            padding: 0 2rem;
+        }
+
+        .navbar h1 {
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .main-container {
+            gap: 10px;
+            padding: 10px;
+
+        }
+
+        .navbar h1 {
+            margin: 0;
+            text-align: center;
+            flex-grow: 1;
+            /* 让标题占据剩余空间并居中 */
+        }
+
+        .navbar {
+            position: relative;
+            /* 让导航栏成为相对定位的容器 */
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            /* 默认左对齐 */
+            color: white;
+            padding: 0 20px;
+            height: 60px;
+        }
+
+        .centered-title {
+            position: absolute;
+            /* 使用绝对定位 */
+            left: 50%;
+            /* 水平方向移动到 50% */
+            top: 50%;
+            /* 垂直方向移动到 50% */
+            transform: translate(-50%, -50%);
+            /* 通过负偏移实现完全居中 */
+            margin: 0;
+            /* 清除默认的外边距 */
+        }
+
+        .main-container {
+            margin-left: 5px;
+            margin-top: 5px;
+        }
+
+        #infodiv {
+            column-count: 4;
+            word-break: break-all;
+            line-height: 1.3em;
+        }
+
+        .versionInfo {
+            line-height: 1.3em;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="navbar">
+        <!-- 左侧按钮 -->
+        <div class="nav-buttons">
+            <button onclick="returntomain()" class="btn btn-info">&lt; 返回主页</button>
+        </div>
+
+        <!-- 绝对居中的标题 -->
+        <h1 class="centered-title" style="color: white;">🎯 随机点名</h1>
+    </div>
+
+
+    <div class="main-container">
+        <h3 style="font-weight: bolder;">版本信息</h3>
+        <div id="versionInfo" style="text-align: left; padding: 10px;">
+            <p>Config版本: 1.1.5[250204]</p>
+            <p>H5版本: 3.6.7[250206]</p>
+            <p>应用版本: <span id="appVersion"></span></p>
+            <p>Node.js版本: <span id="nodeVersion"></span></p>
+            <p>Electron版本: <span id="electronVersion"></span></p>
+            <p>Chromium版本: <span id="chromeVersion"></span></p>
+        </div>
+        <h3 style="font-weight: bolder;">设备信息</h3>
+        <div id="infodiv"></div>
+    </div>
+    <script src="browser.min.js"></script>
+    <script>
+        function returntomain() {
+            window.location.href = "index.html";
+        }
+        document.addEventListener('DOMContentLoaded', async () => {
+            // 显示其他版本
+            document.getElementById('nodeVersion').textContent = window.versions.node();
+            document.getElementById('electronVersion').textContent = window.versions.electron();
+            document.getElementById('chromeVersion').textContent = window.versions.chrome();
+
+            let info = await browser.getInfo();
+            console.log(info);
+
+            // 创建一个空的字符串来存储格式化后的信息
+            let infoHTML = '';
+
+            // 遍历 info 对象的每个属性
+            for (let key in info) {
+                if (info.hasOwnProperty(key)) {
+                    // 将每个键值对格式化为 HTML 字符串
+                    infoHTML += `<p><strong>${key}:</strong> ${info[key]}</p>`;
+                }
+            }
+
+            // 将格式化后的 HTML 字符串插入到 infodiv 中
+            document.getElementById("infodiv").innerHTML = infoHTML;
+
+            const userAgent = navigator.userAgent;
+            const versionMatch = userAgent.match(/random\/([\d.]+)/);
+            const version = versionMatch ? versionMatch[1] : null;
+            document.getElementById("appVersion").innerHTML = version;
+            console.log(version); // 输出: 1.2.1
+        });
+
+
+    </script>
+    <script src="bootstrap.bundle.min.js"></script>
+</body>
+
+</html>
