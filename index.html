@@ -676,15 +676,16 @@
         }
 
         .rounded-circle {
-            width: 40px;
-            height: 40px;
+            width: 55px;
+            height: 55px;
             display: flex;
             align-items: center;
             justify-content: center;
-            background: white;
             border: 2px solid #4361ee;
-            color: #4361ee;
+            color: white;
+            font-size: 2.2em;
             transition: all 0.2s;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
         }
     </style>
 </head>
@@ -896,7 +897,7 @@
                 Swal.fire({
                     icon: "error",
                     title: "人数过少",
-                    confirmButtonColor: "#3085d6",
+                    //confirmButtonColor: "#3085d6",
                     text: `当前班级人数少于选择的抽取人数，请减少抽取人数！`
                 });
                 return;
@@ -1126,7 +1127,7 @@
                         icon: "info",
                         title: "请选择班级",
                         text: "检测到您是首次使用或配置丢失，请先选择班级（注：如您希望直接导入名单，可直接关闭选择班级的对话框）",
-                        confirmButtonColor: "#3085d6"
+                        //confirmButtonColor: "#3085d6"
                     });
                 }, 100);
             }
@@ -1225,7 +1226,13 @@
         // 修改后的randomSeatAssignment函数
         function randomSeatAssignment() {
             if (students.length === 0) {
-                Swal.fire("请先导入或选择班级名单");
+                Swal.fire("");
+                Swal.fire({
+                    icon: "error",
+                    title: "当前无学生",
+                    //confirmButtonColor: "#3085d6",
+                    text: `请导入或选择班级名单后重试`
+                });
                 return;
             }
             // 计算初始行列
@@ -1266,7 +1273,7 @@
                 Swal.fire({
                     icon: "error",
                     title: "座位数不足",
-                    confirmButtonColor: "#3085d6",
+                    //confirmButtonColor: "#3085d6",
                     text: `请增加行或列后重试`
                 });
                 return;
