@@ -823,19 +823,6 @@
             </div>
         </div>
     </div>
-    <!--<div id="aboutModal" class="modal">
-        <div class="modal-content">
-            <span class="close-btn" onclick="closeModal('aboutModal')">&times;</span>
-            <h3 style="font-weight: bolder;">版本信息</h3>
-            <div id="versionInfo" style="text-align: left; padding: 20px;">
-                <p>Config版本: 1.1.5[250204]</p>
-                <p>H5版本: 3.6.4[250204]</p>
-                <p>Node.js版本: <span id="nodeVersion"></span></p>
-                <p>Electron版本: <span id="electronVersion"></span></p>
-                <p>Chromium版本: <span id="chromeVersion"></span></p>
-            </div>
-        </div>
-    </div>-->
     <script src="sheet.js"></script>
     <script>
         let students = [];
@@ -1045,7 +1032,7 @@
                 }
             }
         }*/
-       
+
         // 使用更科学的 Fisher-Yates 洗牌算法
         function shuffleArray(array) {
             for (let i = array.length - 1; i > 0; i--) {
@@ -1390,15 +1377,6 @@
             window.location.href = "about.html";
             //showModal('aboutModal');
         }
-        // 在DOMContentLoaded事件中添加版本显示
-        /*document.addEventListener('DOMContentLoaded', async () => {
-            // 显示应用版本（从package.json获取）
-            //document.getElementById('appVersion').textContent = "v" + window.versions.app();
-            // 显示其他版本
-            document.getElementById('nodeVersion').textContent = window.versions.node();
-            document.getElementById('electronVersion').textContent = window.versions.electron();
-            document.getElementById('chromeVersion').textContent = window.versions.chrome();
-        });*/
     </script>
     <script src="bootstrap.bundle.min.js"></script>
     <script src="sweetalert2@11.js"></script>
