@@ -674,6 +674,24 @@
             justify-content: center;
             transition: all 0.2s ease;
         }
+
+        /* 新增数字选择器样式 */
+        .number-picker {
+            text-align: center;
+            padding: 0 20px;
+        }
+
+        .rounded-circle {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: white;
+            border: 2px solid #4361ee;
+            color: #4361ee;
+            transition: all 0.2s;
+        }
     </style>
 </head>
 
@@ -774,6 +792,35 @@
             <span class="close-btn" onclick="closeModal('classModal')">&times;</span>
             <h3 style="font-weight: bolder;">请选择班级</h3>
             <div id="classList" class="class-list-container"></div>
+        </div>
+    </div>
+    <div id="seatSettingModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal('seatSettingModal')">&times;</span>
+            <h3 style="font-weight: bolder;">座位设置</h3>
+            <div class="d-flex justify-content-around my-4">
+                <!-- 列数选择器 -->
+                <div class="number-picker">
+                    <div class="text-center mb-2">列数</div>
+                    <div class="d-flex align-items-center">
+                        <button class="btn btn-primary rounded-circle px-3 py-1" onclick="adjustColumn(-1)">-</button>
+                        <span id="columnValue" class="mx-3 fs-4">8</span>
+                        <button class="btn btn-primary rounded-circle px-3 py-1" onclick="adjustColumn(1)">+</button>
+                    </div>
+                </div>
+                <!-- 行数选择器 -->
+                <div class="number-picker">
+                    <div class="text-center mb-2">行数</div>
+                    <div class="d-flex align-items-center">
+                        <button class="btn btn-primary rounded-circle px-3 py-1" onclick="adjustRow(-1)">-</button>
+                        <span id="rowValue" class="mx-3 fs-4">1</span>
+                        <button class="btn btn-primary rounded-circle px-3 py-1" onclick="adjustRow(1)">+</button>
+                    </div>
+                </div>
+            </div>
+            <div class="text-center mt-3">
+                <button onclick="generateSeat()" class="btn btn-primary">确定</button>
+            </div>
         </div>
     </div>
     <!--<div id="aboutModal" class="modal">
@@ -955,7 +1002,7 @@
             showModal('multipleModal');
         }
 
-        function randomSeatAssignment(refresh) {
+        /*function randomSeatAssignment(refresh) {
             if (students.length > 200) {
                 Swal.fire({
                     icon: "error",
@@ -997,7 +1044,8 @@
                     showModal('seatModal');
                 }
             }
-        }
+        }*/
+       
         // 使用更科学的 Fisher-Yates 洗牌算法
         function shuffleArray(array) {
             for (let i = array.length - 1; i > 0; i--) {
@@ -1232,6 +1280,82 @@
                 document.removeEventListener('click', closeMenuOnClickOutside);
             }
         }
+
+        // 新增座位设置相关变量
+        let currentColumns = 8;
+        let currentRows = 1;
+
+        // 修改后的randomSeatAssignment函数
+        function randomSeatAssignment() {
+            if (students.length === 0) {
+                Swal.fire("请先导入或选择班级名单");
+                return;
+            }
+            // 计算初始行列
+            const minColumns = Math.ceil(students.length / 50); // 每行最多50人
+            currentColumns = Math.max(8, minColumns);
+            currentRows = Math.ceil(students.length / currentColumns);
+
+            document.getElementById('columnValue').textContent = currentColumns;
+            document.getElementById('rowValue').textContent = currentRows;
+            showModal('seatSettingModal');
+        }
+
+        // 调整列数
+        function adjustColumn(delta) {
+            currentColumns = Math.max(1, currentColumns + delta);
+            currentRows = Math.ceil(students.length / currentColumns);
+            updateUIValues();
+        }
+
+        // 调整行数
+        function adjustRow(delta) {
+            currentRows = Math.max(1, currentRows + delta);
+            currentColumns = Math.ceil(students.length / currentRows);
+            updateUIValues();
+        }
+
+        // 更新界面数值
+        function updateUIValues() {
+            document.getElementById('columnValue').textContent = currentColumns;
+            document.getElementById('rowValue').textContent = currentRows;
+        }
+
+        // 生成座位表
+        function generateSeat() {
+            closeModal('seatSettingModal');
+            const totalSeats = currentColumns * currentRows;
+            if (totalSeats < students.length) {
+                Swal.fire({
+                    icon: "error",
+                    title: "座位数不足",
+                    confirmButtonColor: "#3085d6",
+                    text: `请增加行或列后重试`
+                });
+                return;
+            }
+            const seatTable = document.getElementById('seatTable');
+            seatTable.innerHTML = '';
+
+            // 创建表格
+            for (let i = 0; i < currentRows; i++) {
+                const row = document.createElement('tr');
+                for (let j = 0; j < currentColumns; j++) {
+                    row.appendChild(document.createElement('td'));
+                }
+                seatTable.appendChild(row);
+            }
+
+            // 填充数据
+            const shuffled = shuffleArray([...students]);
+            const cells = seatTable.getElementsByTagName('td');
+            for (let i = 0; i < cells.length; i++) {
+                cells[i].textContent = i < shuffled.length ? shuffled[i] : '';
+            }
+
+            showModal('seatModal');
+        }
+
 
         // 在DOM加载时插入菜单
         document.addEventListener('DOMContentLoaded', () => {
