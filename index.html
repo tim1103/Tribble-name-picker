@@ -883,7 +883,11 @@
 
                 // 将Set转换为Array并获取对应的学生名字
                 const selectedNames = Array.from(selectedIndices).map(i => students[i]).join(' ');
-                document.getElementById('selectedStudents').innerHTML = `被选中的同学是：<br><strong class="names">${selectedNames}</strong>`;
+                //document.getElementById('selectedStudents').innerHTML = `被选中的同学是：<br><strong class="names">${selectedNames}</strong>`;
+                const container = document.getElementById('selectedStudents');
+                container.innerHTML = '被选中的同学是：<br><strong class="names"></strong>';  // 静态HTML
+                container.querySelector('.names').textContent = selectedNames;  // 安全插入内容
+
                 document.getElementById('rePickButton').style.display = 'block';
                 hideNumberSelectionUI();
             }
@@ -935,7 +939,11 @@
             highlightStudents([], true);
             const randomIndex = Math.floor(Math.random() * students.length);
             highlightStudents([randomIndex], false);
-            showModal('oneModal', `被选中的同学是：<br><strong class="names">${students[randomIndex]}</strong>`);
+            //showModal('oneModal', `被选中的同学是：<br><strong class="names">${students[randomIndex]}</strong>`);
+            const modal = document.getElementById('oneModal');
+            modal.querySelector('p').innerHTML = '被选中的同学是：<br><strong class="names"></strong>';
+            modal.querySelector('.names').textContent = students[randomIndex];
+            showModal('oneModal');
         }
         function showNumberSelection() {
             selectedNumber = 0;
@@ -1259,14 +1267,14 @@
             //showModal('aboutModal');
         }
         // 在DOMContentLoaded事件中添加版本显示
-        document.addEventListener('DOMContentLoaded', async () => {
+        /*document.addEventListener('DOMContentLoaded', async () => {
             // 显示应用版本（从package.json获取）
             //document.getElementById('appVersion').textContent = "v" + window.versions.app();
             // 显示其他版本
             document.getElementById('nodeVersion').textContent = window.versions.node();
             document.getElementById('electronVersion').textContent = window.versions.electron();
             document.getElementById('chromeVersion').textContent = window.versions.chrome();
-        });
+        });*/
     </script>
     <script src="bootstrap.bundle.min.js"></script>
     <script src="sweetalert2@11.js"></script>
