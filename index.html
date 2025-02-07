@@ -283,8 +283,15 @@
             padding: 10px;
             width: 80vw;
             /* 控制模态框宽度 */
+           
         }
-
+        .class-list-container div{
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            transition: all 0.2s ease;
+            font-size: 1rem;
+        }
         .class-item {
             width: 100px;
             height: 50px;
@@ -292,7 +299,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            border: 1px solid #ddd;
+            border: 1px solid #e6e6e6;
             border-radius: 5px;
             box-shadow: 1px 1px 1px 1px rgb(196 196 196 / 20%);
             cursor: pointer;
@@ -1132,8 +1139,9 @@
                     Swal.fire({
                         icon: "info",
                         title: "请选择班级",
-                        text: "检测到您是首次使用或配置丢失，请先选择班级（注：如您希望直接导入名单，可直接关闭选择班级的对话框）",
+                        text: "检测到您是首次使用或配置丢失，请先选择班级",
                         //confirmButtonColor: "#3085d6"
+                        footer: '如您希望直接导入名单，可直接关闭选择班级的对话框'
                     });
                 }, 100);
             }
