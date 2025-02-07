@@ -283,15 +283,17 @@
             padding: 10px;
             width: 80vw;
             /* 控制模态框宽度 */
-           
+
         }
-        .class-list-container div{
+
+        .class-list-container div {
             background: white;
             border-radius: 12px;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
             transition: all 0.2s ease;
             font-size: 1rem;
         }
+
         .class-item {
             width: 100px;
             height: 50px;
@@ -693,6 +695,28 @@
             font-size: 2.2em;
             transition: all 0.2s;
             background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        }
+
+        /* 添加空状态提示样式 */
+        .empty-state {
+            width: 100%;
+            text-align: center;
+            padding: 40px 20px;
+            color: #666;
+        }
+
+        .empty-state svg {
+            opacity: 0.6;
+            margin-bottom: 15px;
+        }
+
+        .empty-state h3 {
+            font-size: 1.5em;
+            margin: 10px 0;
+        }
+
+        .empty-state p {
+            font-size: 1.1em;
         }
     </style>
 </head>
@@ -1114,7 +1138,7 @@
 
         document.addEventListener('DOMContentLoaded', async () => {
             // 加载配置文件
-            const config = await window.electronAPI.loadConfig();
+            /*const config = await window.electronAPI.loadConfig();
             let hasValidConfig = false;
 
             if (config && config.className && predefinedClasses[config.className]) {
@@ -1141,6 +1165,33 @@
                         title: "请选择班级",
                         text: "检测到您是首次使用或配置丢失，请先选择班级",
                         //confirmButtonColor: "#3085d6"
+                        footer: '如您希望直接导入名单，可直接关闭选择班级的对话框'
+                    });
+                }, 100);
+            }*/
+            const config = await window.electronAPI.loadConfig();
+            let hasValidConfig = false;
+
+            if (config && config.className && predefinedClasses[config.className]) {
+                students = predefinedClasses[config.className];
+                document.getElementById('className').innerText = config.className;
+                hasValidConfig = true;
+                updateStudentCount();
+                renderStudents();
+            } else {
+                // 清空原有数据
+                students = [];
+                document.getElementById('className').innerText = "未选择班级";
+                updateStudentCount();
+                renderStudents();  // 显示提示信息
+
+                // 显示提示弹窗
+                setTimeout(() => {
+                    showClassModal();
+                    Swal.fire({
+                        icon: "info",
+                        title: "请选择班级或导入名单",
+                        text: "检测到您是首次使用或配置丢失，请选择班级或导入名单",
                         footer: '如您希望直接导入名单，可直接关闭选择班级的对话框'
                     });
                 }, 100);
@@ -1176,7 +1227,8 @@
                     Swal.fire({
                         icon: "error",
                         title: "保存失败",
-                        text: `无法保存配置: ${result.error || '未知错误'}`
+                        text: `无法保存配置: ${result.error || '未知错误'}`,
+                        footer: '请尝试长按本程序快捷方式（右键）并选择以管理员身份允许'
                     });
                     return;
                 }
@@ -1331,6 +1383,36 @@
                 element.blur();
             });
             //document.getElementById('confirmButton').focus();
+        }
+
+        function renderStudents() {
+            const container = document.getElementById('studentContainer');
+            container.innerHTML = '';
+
+            if (students.length === 0) {
+                // 创建提示信息元素
+                const emptyState = document.createElement('div');
+                container.style.display = 'flex';
+                emptyState.className = 'empty-state';
+                emptyState.innerHTML = `
+            <div style="text-align:center; color:#666; padding:40px 20px ">
+                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="currentColor" class="bi bi-box" viewBox="0 0 16 16">
+  <path d="M8.186 1.113a.5.5 0 0 0-.372 0L1.846 3.5 8 5.961 14.154 3.5zM15 4.239l-6.5 2.6v7.922l6.5-2.6V4.24zM7.5 14.762V6.838L1 4.239v7.923zM7.443.184a1.5 1.5 0 0 1 1.114 0l7.129 2.852A.5.5 0 0 1 16 3.5v8.662a1 1 0 0 1-.629.928l-7.185 2.874a.5.5 0 0 1-.372 0L.63 13.09a1 1 0 0 1-.63-.928V3.5a.5.5 0 0 1 .314-.464z"/>
+</svg>
+                <h3 style="margin:15px 0">当前无学生名单</h3>
+                <p>请先选择班级或导入名单</p>
+            </div>
+        `;
+                container.appendChild(emptyState);
+            } else {
+                container.style.display = 'grid';
+                students.forEach(student => {
+                    const div = document.createElement('div');
+                    div.className = 'student-box';
+                    div.innerText = student;
+                    container.appendChild(div);
+                });
+            }
         }
 
 
