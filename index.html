@@ -1025,10 +1025,16 @@
                             pickMultiple();
                             break;
                         case 'seatModal':
+                            //console.log('seatModal');
                             randomSeatAssignment(true);
                             break;
                         case 'dragonModal':
                             nextDragonPick(); // 直接调用正常抽选逻辑
+                            break;
+                        // 新增座位设置模态框的键盘响应
+                        case 'seatSettingModal':
+                            //console.log('seatSettingModal');
+                            generateSeat(); // 回车直接生成座位
                             break;
                     }
                 }
@@ -1225,6 +1231,7 @@
 
         // 修改后的randomSeatAssignment函数
         function randomSeatAssignment() {
+            closeModal("seatModal");
             if (students.length === 0) {
                 Swal.fire("");
                 Swal.fire({
@@ -1298,6 +1305,24 @@
             }
 
             showModal('seatModal');
+
+            //取消enter键焦点
+            const focusableElements = [
+                '[contenteditable]',
+                'a[href]',
+                'area[href]',
+                'button:not([disabled])',
+                'input:not([disabled]):not([type="hidden"]):not(.no-focus)',
+                'select:not([disabled])',
+                'textarea:not([disabled])',
+                '[tabindex]:not([tabindex="-1"]):not([disabled])',
+                '[contenteditable]'
+            ].join(',');
+            const allFocusableElements = document.querySelectorAll(focusableElements);
+            allFocusableElements.forEach(element => {
+                element.blur();
+            });
+            //document.getElementById('confirmButton').focus();
         }
 
 
