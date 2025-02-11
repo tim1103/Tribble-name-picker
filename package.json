@@ -1,6 +1,6 @@
 {
   "name": "random",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "main": "main.js",
   "author": "tim1103",
   "description": "一个用于课堂随机点名的工具，支持多种抽选模式",

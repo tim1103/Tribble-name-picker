@@ -718,15 +718,45 @@
         .empty-state p {
             font-size: 1.1em;
         }
-        .minimize-button{
-            padding: 0 0 0 0!important;
-            min-width: 65px!important;
+
+        .minimize-button {
+            padding: 0 0 0 0 !important;
+            min-width: 65px !important;
         }
-        #columnValue{
+
+        #columnValue {
             font-size: 3rem !important;
         }
-        #rowValue{
+
+        #rowValue {
             font-size: 3rem !important;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 50px !important;
+            /* 增大触控区域 */
+            height: 50px !important;
+            padding: 15px !important;
+            /* 扩大可点击区域 */
+            font-size: 28px !important;
+            display: flex !important;
+            align-items: center;
+            justify-content: center;
+            opacity: 0.8;
+            transition: all 0.2s;
+        }
+
+        /* 增加关闭按钮的伪元素扩大点击区域 */
+        .close-btn::after {
+            content: "";
+            position: absolute;
+            top: -10px;
+            left: -10px;
+            right: -10px;
+            bottom: -10px;
         }
     </style>
 </head>
@@ -1020,6 +1050,14 @@
         }
 
         function pickOne() {
+            if (students.length === 0) {
+                Swal.fire({
+                    icon: "error",
+                    title: "当前无学生",
+                    text: "请先选择班级或导入名单"
+                });
+                return;
+            }
             closeModal('oneModal');
             highlightStudents([], true);
             const randomIndex = Math.floor(Math.random() * students.length);
@@ -1100,6 +1138,14 @@
 
         // 确保接龙入口函数正确初始化
         function dragonPick() {
+            if (students.length === 0) {
+                Swal.fire({
+                    icon: "error",
+                    title: "当前无学生",
+                    text: "请先选择班级或导入名单"
+                });
+                return;
+            }
             currentShuffledStudents = shuffleArray([...students]);
             currentIndex = 0;
             nextDragonPick();
