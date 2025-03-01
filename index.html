@@ -569,7 +569,6 @@
         .highlight {
             background: var(--accent-color) !important;
             color: white;
-            animation: pulse 1.5s infinite;
         }
 
         @keyframes pulse {
@@ -795,6 +794,63 @@
         .tips {
             margin-bottom: 0.1em;
         }
+
+        /* 多人动画容器 */
+        #multiSlotMachine {
+            height: 120px;
+            margin: 20px 0;
+        }
+
+        /* 高亮多个学生 */
+        .highlight-multi {
+            background: #ff6b6b !important;
+            color: white;
+            animation: pulseMulti 1s infinite;
+        }
+
+        @keyframes pulseMulti {
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.03);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        /* 新增多列布局样式 */
+        .multi-slot-column {
+            width: 120px;
+            height: 140px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .multi-slot-container {
+            position: absolute;
+            width: 100%;
+            transition: transform 0.1s ease-out;
+        }
+
+        .multi-slot-column {
+            width: 120px;
+            height: 140px;
+            overflow: hidden;
+            position: relative;
+            background: white;
+            /*border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);*/
+        }
+
+        /* 新增结果样式 */
+        .slot-item:last-child {
+            /*color: var(--primary-color);*/
+            font-weight: bold;
+        }
     </style>
 </head>
 
@@ -886,22 +942,32 @@
             <button onclick="pickOne()" class="btn btn-primary" id="pickOneButton">换一人</button>
         </div>
     </div>
+    <!-- 修改multipleModal的HTML结构 -->
     <div id="multipleModal" class="modal">
         <div class="modal-content">
             <span class="close-btn" onclick="closeModal('multipleModal')">&times;</span>
-            <p>请选择抽取人数：</p>
-            <div>
-                <button onclick="selectNumber(1)" class="btn btn-primary number-button">1</button>
-                <button onclick="selectNumber(2)" class="btn btn-primary  number-button">2</button>
-                <button onclick="selectNumber(3)" class="btn btn-primary  number-button">3</button>
-                <button onclick="selectNumber(4)" class="btn btn-primary  number-button">4</button>
-                <button onclick="selectNumber(5)" class="btn btn-primary  number-button">5</button>
-                <button onclick="selectNumber(6)" class="btn btn-primary  number-button">6</button>
+            <!-- 初始选择界面 -->
+            <div id="numberSelectionUI">
+                <p>请选择抽取人数：</p>
+                <div>
+                    <button onclick="selectNumber(1)" class="btn btn-primary number-button">1</button>
+                    <button onclick="selectNumber(2)" class="btn btn-primary number-button">2</button>
+                    <button onclick="selectNumber(3)" class="btn btn-primary number-button">3</button>
+                    <button onclick="selectNumber(4)" class="btn btn-primary number-button">4</button>
+                    <button onclick="selectNumber(5)" class="btn btn-primary number-button">5</button>
+                    <button onclick="selectNumber(6)" class="btn btn-primary number-button">6</button>
+                </div>
             </div>
-            <p id="selectedStudents"></p>
-            <button onclick="pickMultiple()" id="rePickButton" class="btn btn-primary">换一组</button>
+
+            <!-- 抽取结果显示界面 -->
+            <div id="resultUI" style="display:none;">
+                <p id="selectionCountText"></p>
+                <div id="multiSlotsContainer" class="d-flex flex-wrap justify-content-center gap-3"></div>
+                <button onclick="pickMultiple()" id="rePickButton" class="btn btn-primary mt-3">换一组</button>
+            </div>
         </div>
     </div>
+
     <div id="dragonModal" class="modal">
         <div class="modal-content roster-modal">
             <span class="close-btn" onclick="closeModal('dragonModal')">&times;</span>
@@ -1008,47 +1074,91 @@
             });
         }
 
-        // 隐藏选择人数的UI元素的方法
-        function hideNumberSelectionUI() {
-            document.querySelector('#multipleModal p:first-of-type').classList.add('hidden'); // 隐藏提示文案
-            document.querySelectorAll('.number-button').forEach(button => button.classList.add('hidden')); // 隐藏按钮
-        }
-
-        // 显示选择人数的UI元素的方法
-        function showNumberSelectionUI() {
-            document.querySelector('#multipleModal p:first-of-type').classList.remove('hidden'); // 显示提示文案
-            document.querySelectorAll('.number-button').forEach(button => button.classList.remove('hidden')); // 显示按钮
-        }
-
+        
+        let multiAnimationLock = false;
         function pickMultiple() {
+            if (multiAnimationLock) return;
+            if (!selectedNumber || selectedNumber < 1) {
+                Swal.fire("");
+                Swal.fire({
+                    icon: "error",
+                    title: "请先选择人数",
+                    text: `当前选择人数为0！`
+                });
+                return;
+            }
+
             if (students.length < selectedNumber) {
                 Swal.fire({
                     icon: "error",
                     title: "人数过少",
-                    //confirmButtonColor: "#3085d6",
                     text: `当前班级人数少于选择的抽取人数，请减少抽取人数！`
                 });
                 return;
             }
-            if (selectedNumber > 0) {
-                let selectedIndices = new Set(); // 使用Set来保证唯一性
 
-                while (selectedIndices.size < selectedNumber) {
-                    const randomIndex = Math.floor(Math.random() * students.length);
-                    selectedIndices.add(randomIndex); // 自动忽略已经存在的索引
+            // 禁用按钮
+            document.getElementById('rePickButton').disabled = true;
+
+            // 生成候选名单
+            const candidates = shuffleArray([...students]);
+            selectedStudents = candidates.slice(0, selectedNumber);
+
+            // 准备动画容器
+            const container = document.getElementById('multiSlotsContainer');
+            container.innerHTML = selectedStudents
+                .map(() => `
+            <div class="multi-slot-column">
+                <div class="multi-slot-container"></div>
+            </div>
+        `).join('');
+
+            // 初始化每个列的内容
+            const allContainers = container.querySelectorAll('.multi-slot-container');
+            allContainers.forEach((container, index) => {
+                const items = shuffleArray([...candidates]).concat(selectedStudents[index]);
+                container.innerHTML = items.map(name =>
+                    `<div class="slot-item">${name}</div>`
+                ).join('');
+                container.style.transform = `translateY(-${items.length * 120}px)`;
+            });
+
+            // 执行动画
+            multiAnimationLock = true;
+            document.getElementById('rePickButton').disabled = true;
+
+            const startTime = Date.now();
+            const duration = 2000 + Math.random() * 500;
+
+            const animate = () => {
+                const progress = Date.now() - startTime;
+                const ratio = Math.min(progress / duration, 1);
+                const easing = 1 - Math.pow(1 - ratio, 3);
+
+                allContainers.forEach((container, index) => {
+                    const items = container.children;
+                    const targetY = -120 * (items.length - 1) * easing;
+                    container.style.transform = `translateY(${targetY}px)`;
+                });
+
+                if (ratio < 1) {
+                    requestAnimationFrame(animate);
+                } else {
+                    allContainers.forEach((container, index) => {
+                        const items = container.children;
+                        container.style.transform = `translateY(-${120 * (items.length - 1)}px)`;
+                    });
+
+                    // 只保留高亮逻辑
+                    highlightStudents(selectedStudents.map(s => students.indexOf(s)), false);
+                    multiAnimationLock = false;
+                    document.getElementById('rePickButton').disabled = false;
                 }
+            };
 
-                // 将Set转换为Array并获取对应的学生名字
-                const selectedNames = Array.from(selectedIndices).map(i => students[i]).join(' ');
-                //document.getElementById('selectedStudents').innerHTML = `被选中的同学是：<br><strong class="names">${selectedNames}</strong>`;
-                const container = document.getElementById('selectedStudents');
-                container.innerHTML = '被选中的同学是：<br><strong class="names"></strong>';  // 静态HTML
-                container.querySelector('.names').textContent = selectedNames;  // 安全插入内容
-
-                document.getElementById('rePickButton').style.display = 'block';
-                hideNumberSelectionUI();
-            }
+            requestAnimationFrame(animate);
         }
+        
 
         function selectNumber(number) {
             selectedNumber = number;
@@ -1092,10 +1202,10 @@
             }
         }
 
-        
+
         function showNumberSelection() {
             selectedNumber = 0;
-            document.getElementById('selectedStudents').innerText = '';
+            //document.getElementById('selectedStudents').innerText = '';
             document.getElementById('rePickButton').style.display = 'none';
 
             // 确保显示选择人数的UI元素
@@ -1536,7 +1646,7 @@
             // 生成更多过渡项（8-12个）让动画更自然
             const transitionItems = [];
             const usedIndices = new Set();
-            const transitionCount = Math.min(students.length - 1, 8 + Math.floor(Math.random() * 5));
+            const transitionCount = Math.min(students.length - 1, 12 + Math.floor(Math.random() * 5));
 
             while (transitionItems.length < transitionCount) {
                 const randomIndex = Math.floor(Math.random() * students.length);
@@ -1561,7 +1671,7 @@
             container.style.transform = `translateY(${currentPosition}px)`;
 
             // 调整动画参数（缩短总时长）
-            const duration = 1800 + transitionItems.length * 50;
+            const duration = 1600 + transitionItems.length * 50;
             let startTime = null;
 
             const animate = (timestamp) => {
@@ -1591,6 +1701,30 @@
             };
 
             requestAnimationFrame(animate);
+        }
+
+        function selectNumber(number) {
+            selectedNumber = number;
+
+            // 切换UI显示
+            document.getElementById('numberSelectionUI').style.display = 'none';
+            document.getElementById('resultUI').style.display = 'block';
+            document.getElementById('selectionCountText').innerHTML =
+                `当前抽取 <strong >${number}人</strong>`;
+
+            pickMultiple();
+        }
+
+        function showNumberSelection() {
+            selectedNumber = 0;
+
+            // 重置UI状态
+            document.getElementById('numberSelectionUI').style.display = 'block';
+            document.getElementById('resultUI').style.display = 'none';
+            document.getElementById('multiSlotsContainer').innerHTML = '';
+            document.getElementById('rePickButton').disabled = false;
+
+            showModal('multipleModal');
         }
         // 在DOM加载时插入菜单
         document.addEventListener('DOMContentLoaded', () => {
