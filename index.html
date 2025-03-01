@@ -1074,7 +1074,7 @@
             });
         }
 
-        
+
         let multiAnimationLock = false;
         function pickMultiple() {
             if (multiAnimationLock) return;
@@ -1118,7 +1118,7 @@
             allContainers.forEach((container, index) => {
                 const items = shuffleArray([...candidates]).concat(selectedStudents[index]);
                 container.innerHTML = items.map(name =>
-                    `<div class="slot-item">${name}</div>`
+                    `<div class="slot-item">${escapeHtml(name)}</div>`
                 ).join('');
                 container.style.transform = `translateY(-${items.length * 120}px)`;
             });
@@ -1158,7 +1158,7 @@
 
             requestAnimationFrame(animate);
         }
-        
+
 
         function selectNumber(number) {
             selectedNumber = number;
@@ -1661,7 +1661,7 @@
 
             const container = document.querySelector('.slot-container');
             container.innerHTML = transitionItems.map(name =>
-                `<div class="slot-item">${name}</div>`
+                `<div class="slot-item">${escapeHtml(name)}</div>`
             ).join('');
 
             const itemHeight = 120;
@@ -1760,6 +1760,14 @@
         function showAboutModal() {
             window.location.href = "about.html";
             //showModal('aboutModal');
+        }
+        function escapeHtml(unsafe) {
+            return unsafe.toString()
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
         }
     </script>
     <script src="bootstrap.bundle.min.js"></script>
