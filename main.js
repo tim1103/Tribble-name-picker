@@ -149,8 +149,8 @@ function createOverlayWindow() {
 
 function createWindow() {
   mainWindow = new BrowserWindow({
-    width: 1280,
-    height: 720,
+    width: 1080,
+    height: 640,
     minWidth: 520,
     minHeight: 180,
     webPreferences: {
@@ -164,7 +164,7 @@ function createWindow() {
   });
 
   mainWindow.loadFile('index.html'); // 加载HTML文件
-  mainWindow.maximize();
+  //mainWindow.maximize();
   // 打开开发者工具（可选）
   //mainWindow.webContents.openDevTools();
 

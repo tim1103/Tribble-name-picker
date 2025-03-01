@@ -758,6 +758,43 @@
             right: -10px;
             bottom: -10px;
         }
+
+        /* 老虎机动画样式 */
+        .slot-machine {
+            height: 120px;
+            /* 固定高度避免模态框跳动 */
+            overflow: hidden;
+            position: relative;
+            /*margin: 20px 0;*/
+        }
+
+        .slot-container {
+            position: absolute;
+            width: 100%;
+            transition: transform 0.1s ease-out;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .slot-item {
+            font-size: 2.5em !important;
+            /* 保持与原版相同的字号 */
+            height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bolder;
+        }
+
+        .slot-container {
+            transition-timing-function: cubic-bezier(0.25, 0.46, 0.45, 0.94) !important;
+            /* 添加easeOutQuad曲线 */
+        }
+
+        .tips {
+            margin-bottom: 0.1em;
+        }
     </style>
 </head>
 
@@ -840,8 +877,13 @@
     <div id="oneModal" class="modal">
         <div class="modal-content">
             <span class="close-btn" onclick="closeModal('oneModal')">&times;</span>
-            <p id="selectedStudent"></p>
-            <button onclick="pickOne()" class="btn btn-primary">换一人</button>
+            <p class="tips">被选中的同学是：</p>
+            <!-- 新增动画容器 -->
+            <div id="slotMachine" class="slot-machine">
+                <div class="slot-container"></div>
+            </div>
+            <!--<p id="selectedStudent"></p>-->
+            <button onclick="pickOne()" class="btn btn-primary" id="pickOneButton">换一人</button>
         </div>
     </div>
     <div id="multipleModal" class="modal">
@@ -1040,7 +1082,8 @@
             const modal = document.getElementById(modalId);
             modal.classList.remove('show');
             removeKeyboardListeners();
-
+            cancelAnimationFrame(animationFrameId);
+            isAnimating = false;
             // 清除接龙状态
             if (modalId === 'dragonModal') {
                 setTimeout(function () {
@@ -1049,25 +1092,7 @@
             }
         }
 
-        function pickOne() {
-            if (students.length === 0) {
-                Swal.fire({
-                    icon: "error",
-                    title: "当前无学生",
-                    text: "请先选择班级或导入名单"
-                });
-                return;
-            }
-            closeModal('oneModal');
-            highlightStudents([], true);
-            const randomIndex = Math.floor(Math.random() * students.length);
-            highlightStudents([randomIndex], false);
-            //showModal('oneModal', `被选中的同学是：<br><strong class="names">${students[randomIndex]}</strong>`);
-            const modal = document.getElementById('oneModal');
-            modal.querySelector('p').innerHTML = '被选中的同学是：<br><strong class="names"></strong>';
-            modal.querySelector('.names').textContent = students[randomIndex];
-            showModal('oneModal');
-        }
+        
         function showNumberSelection() {
             selectedNumber = 0;
             document.getElementById('selectedStudents').innerText = '';
@@ -1113,7 +1138,7 @@
                 if (event.key === 'Enter' || event.key === 'ArrowDown' || event.key === 'PageDown') {
                     switch (modalId) {
                         case 'oneModal':
-                            pickOne();
+                            if (!isAnimating) pickOne();
                             break;
                         case 'multipleModal':
                             pickMultiple();
@@ -1486,7 +1511,87 @@
             }
         }
 
+        let isAnimating = false; // 动画状态锁
+        let animationFrameId = null;
 
+        function pickOne() {
+            showModal('oneModal');
+            if (isAnimating) return;
+            if (students.length === 0) {
+                Swal.fire({
+                    icon: "error",
+                    title: "当前无学生",
+                    text: "请先选择班级或导入名单"
+                });
+                return;
+            }
+
+            // 禁用按钮防止重复点击
+            document.getElementById('pickOneButton').disabled = true;
+            isAnimating = true;
+
+            const targetIndex = Math.floor(Math.random() * students.length);
+            const targetStudent = students[targetIndex];
+
+            // 生成更多过渡项（8-12个）让动画更自然
+            const transitionItems = [];
+            const usedIndices = new Set();
+            const transitionCount = Math.min(students.length - 1, 8 + Math.floor(Math.random() * 5));
+
+            while (transitionItems.length < transitionCount) {
+                const randomIndex = Math.floor(Math.random() * students.length);
+                if (!usedIndices.has(randomIndex) && randomIndex !== targetIndex) {
+                    transitionItems.push(students[randomIndex]);
+                    usedIndices.add(randomIndex);
+                }
+            }
+
+            // 添加目标项作为最后一项
+            transitionItems.push(targetStudent);
+
+            const container = document.querySelector('.slot-container');
+            container.innerHTML = transitionItems.map(name =>
+                `<div class="slot-item">${name}</div>`
+            ).join('');
+
+            const itemHeight = 120;
+            const totalHeight = transitionItems.length * itemHeight;
+
+            let currentPosition = -totalHeight + itemHeight;
+            container.style.transform = `translateY(${currentPosition}px)`;
+
+            // 调整动画参数（缩短总时长）
+            const duration = 1800 + transitionItems.length * 50;
+            let startTime = null;
+
+            const animate = (timestamp) => {
+                if (!startTime) startTime = timestamp;
+                const progress = timestamp - startTime;
+                const ratio = Math.min(progress / duration, 1);
+
+                // 使用二次缓动函数实现匀减速 (easeOutQuad)
+                const easing = 1 - Math.pow(1 - ratio, 3);
+
+                // 计算目标位置
+                const targetPosition = -itemHeight * (transitionItems.length - 1) * easing;
+
+                container.style.transform = `translateY(${targetPosition}px)`;
+
+                if (ratio < 1) {
+                    requestAnimationFrame(animate);
+                } else {
+                    // 最终精确对齐
+                    container.style.transform = `translateY(${-itemHeight * (transitionItems.length - 1)}px)`;
+                    isAnimating = false;
+                    document.getElementById('pickOneButton').disabled = false;
+                    highlightStudents([targetIndex], false);
+                    /*document.getElementById('selectedStudent').innerHTML =
+                        `最终选中：<strong class="names">${targetStudent}</strong>`;*/
+                }
+            };
+
+            requestAnimationFrame(animate);
+        }
         // 在DOM加载时插入菜单
         document.addEventListener('DOMContentLoaded', () => {
             const navCollapse = document.querySelector('.nav-collapse');
