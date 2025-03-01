@@ -24,3 +24,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
 contextBridge.exposeInMainWorld('overlayAPI', {
   restoreMain: () => ipcRenderer.send('restore-main-window')
 });
+
+// preload.js 中添加
+contextBridge.exposeInMainWorld('systemInfo', {
+  get: () => ipcRenderer.invoke('get-system-info')
+});

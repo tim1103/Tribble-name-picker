@@ -221,3 +221,23 @@ ipcMain.on('restore-main-window', () => {
   
   mainWindow.moveTop();
 });
+
+// main.js 中添加
+const os = require('os');
+
+ipcMain.handle('get-system-info', () => {
+  return {
+    platform: os.platform(),
+    type: os.type(),
+    version: os.release(),
+    arch: os.arch(),
+    totalMem: (os.totalmem() / 1024 ** 3).toFixed(2) + ' GB',
+    freeMem: (os.freemem() / 1024 ** 3).toFixed(2) + ' GB',
+    cpus: os.cpus().length,
+
+    homedir: os.homedir(),
+    tmpdir: os.tmpdir(),
+    hostname: os.hostname(),
+    uptime: (os.uptime() / 3600).toFixed(2) + ' 小时'
+  };
+});

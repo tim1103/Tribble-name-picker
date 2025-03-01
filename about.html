@@ -50,7 +50,7 @@
         }
 
         * {
-            font-family: 'HarmonyOS Sans', sans-serif;
+            font-family: 'HarmonyOS Sans', sans-serif!important;
         }
 
         :root {
@@ -206,11 +206,32 @@
         #infodiv {
             column-count: 4;
             word-break: break-all;
-            line-height: 1.3em;
+            line-height: 1em;
         }
 
-        .versionInfo {
-            line-height: 1.3em;
+        .versionInfo2 {
+            line-height: 1em;
+        }
+
+        #infodiv2 {
+            column-count: 4;
+            /* 改为2列显示更合适 */
+            word-break: break-all;
+        }
+
+        #infodiv2 h4 {
+            margin-top: 5px;
+            color: var(--primary-color);
+            font-size: 1em;
+        }
+
+        #versionInfo {
+            columns: 3;
+        }
+
+        p {
+            margin-top: 0!important;
+            margin-bottom: 1px!important;
         }
     </style>
 </head>
@@ -223,22 +244,27 @@
         </div>
 
         <!-- 绝对居中的标题 -->
-        <h1 class="centered-title" style="color: white;">🎯 随机点名</h1>
+        <h1 class="centered-title" style="color: white;">🎯 随机点名 | 🛠️ 诊断</h1>
     </div>
 
 
     <div class="main-container">
         <h3 style="font-weight: bolder;">版本信息</h3>
-        <div id="versionInfo" style="text-align: left; padding: 10px;">
-            <p>Config版本: 1.1.5[250204]</p>
-            <p>H5版本: 3.7.1[250211]</p>
+        <div id="versionInfo" style="text-align: left;">
+            <p>Config版本: 1.1.6[250301]</p>
+            <p>H5版本: 3.7.5[250301]</p>
             <p>应用版本: <span id="appVersion"></span></p>
             <p>Node.js版本: <span id="nodeVersion"></span></p>
             <p>Electron版本: <span id="electronVersion"></span></p>
             <p>Chromium版本: <span id="chromeVersion"></span></p>
         </div>
+        <hr/>
         <h3 style="font-weight: bolder;">设备信息</h3>
+        <div id="infodiv2"></div>
+        <hr/>
+        <h3 style="font-weight: bolder;">内核信息</h3>
         <div id="infodiv"></div>
+
     </div>
     <script src="browser.min.js"></script>
     <script>
@@ -250,6 +276,33 @@
             document.getElementById('nodeVersion').textContent = window.versions.node();
             document.getElementById('electronVersion').textContent = window.versions.electron();
             document.getElementById('chromeVersion').textContent = window.versions.chrome();
+
+            // 获取系统信息
+            const sysInfo = await window.systemInfo.get();
+
+            // 创建格式化字符串
+            let sysInfoHTML = `
+    <h5>操作系统</h5>
+    <p>平台: ${sysInfo.platform}</p>
+    <p>类型: ${sysInfo.type}</p>
+    <p>版本: ${sysInfo.version}</p>
+    <p>架构: ${sysInfo.arch}</p>
+    <h5>内存</h5>
+    <p>总内存: ${sysInfo.totalMem}</p>
+    <p>空闲内存: ${sysInfo.freeMem}</p>
+    <h5>处理器</h5>
+    <p>核心数: ${sysInfo.cpus}</p>
+    <h5>系统状态</h5>
+    <p>运行时间: ${sysInfo.uptime}</p>
+    <p>主机名: ${sysInfo.hostname}</p>
+    <h5>目录信息</h5>
+    <p>用户目录: ${sysInfo.homedir}</p>
+    <p>临时目录: ${sysInfo.tmpdir}</p>
+  `;
+
+            // 插入到infodiv
+            document.getElementById("infodiv2").innerHTML = sysInfoHTML;
+
 
             let info = await browser.getInfo();
             console.log(info);
