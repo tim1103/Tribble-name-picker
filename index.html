@@ -49,6 +49,13 @@
             font-style: normal;
         }
 
+        @font-face {
+            font-family: 'DingTalk JinBuTi';
+            src: url('fonts/DingTalk_JinBuTi.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
         html {
             font-family: 'HarmonyOS Sans', sans-serif;
         }
@@ -689,7 +696,6 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            border: 2px solid #4361ee;
             color: white;
             font-size: 2.2em;
             transition: all 0.2s;
@@ -851,19 +857,60 @@
             /*color: var(--primary-color);*/
             font-weight: bold;
         }
+
+        .btn-next {
+            width: 100%;
+        }
+
+        /*.class-info {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            bottom: 8px;
+            font-size: 0.9em;
+        }*/
+
+        .navbar {
+            height: auto;
+            /* 修改原来的固定高度 */
+            min-height: 60px;
+            /* 保持最小高度 */
+            padding: 8px 20px;
+            /* 增加内边距 */
+        }
+
+        .powered-by {
+            font-family: 'HarmonyOS Sans SC', sans-serif;
+            letter-spacing: 0.5px;
+            margin-top: 2px;
+        }
+
+        .powered-by span {
+            font-family: 'DingTalk JinBuTi', sans-serif!important;
+            /*font-size: 0.9em;
+             可调整字体大小 
+            letter-spacing: 0.5px;*/
+        }
     </style>
 </head>
 
 <body>
     <div class="navbar">
-        <div class="d-flex align-items-center gap-3">
-            <h1 style="color: white;">🎯 随机点名</h1>
-            <div class="class-info text-light opacity-85">
-                <span id="className">高一8班</span>
-                <span class="mx-2">|</span>
-                <span id="studentCount">0人</span>
+        <!-- 修改这部分结构 -->
+        <div class="d-flex flex-column"> <!-- 改为垂直排列 -->
+            <h1 style="color: white; line-height: 1.2;">🎯 随机点名</h1>
+            <div class="powered-by" style="font-size: 0.8em; color: rgba(255,255,255,0.7);">
+                Powered By <span>八班电教</span>
             </div>
         </div>
+
+        <div class="class-info text-light opacity-85">
+            <span id="className">高一8班</span>
+            <span class="mx-2">|</span>
+            <span id="studentCount">0人</span>
+        </div>
+        <!-- 其余代码保持不变 -->
+
         <!-- 新增折叠菜单 -->
         <div class="nav-collapse">
             <!-- 原有按钮组 -->
@@ -925,7 +972,7 @@
             <h3 style="font-weight: bolder;">座位安排</h3>
             <table id="seatTable" border="1" cellpadding="5" cellspacing="0"></table>
             <div style="margin-top: 10px; text-align: center;">
-                <button onclick="randomSeatAssignment(true)" class="btn btn-primary">重新分配</button>
+                <button onclick="randomSeatAssignment(true)" class="btn btn-primary btn-next">重新分配</button>
             </div>
         </div>
     </div>
@@ -939,7 +986,7 @@
                 <div class="slot-container"></div>
             </div>
             <!--<p id="selectedStudent"></p>-->
-            <button onclick="pickOne()" class="btn btn-primary" id="pickOneButton">换一人</button>
+            <button onclick="pickOne()" class="btn btn-primary  btn-next" id="pickOneButton">换一人</button>
         </div>
     </div>
     <!-- 修改multipleModal的HTML结构 -->
@@ -963,7 +1010,7 @@
             <div id="resultUI" style="display:none;">
                 <p id="selectionCountText"></p>
                 <div id="multiSlotsContainer" class="d-flex flex-wrap justify-content-center gap-3"></div>
-                <button onclick="pickMultiple()" id="rePickButton" class="btn btn-primary mt-3">换一组</button>
+                <button onclick="pickMultiple()" id="rePickButton" class="btn btn-primary mt-3  btn-next">换一组</button>
             </div>
         </div>
     </div>
@@ -972,7 +1019,7 @@
         <div class="modal-content roster-modal">
             <span class="close-btn" onclick="closeModal('dragonModal')">&times;</span>
             <div id="dragonCard" class="card">请点击“下一位”开始抽选</div>
-            <button onclick="nextDragonPick()" class="btn btn-primary">下一位</button>
+            <button onclick="nextDragonPick()" class="btn btn-primary  btn-next">下一位</button>
         </div>
     </div>
     <!-- 新增班级选择模态框 -->
@@ -1008,7 +1055,7 @@
                 </div>
             </div>
             <div class="text-center mt-3">
-                <button onclick="generateSeat()" class="btn btn-primary">确定</button>
+                <button onclick="generateSeat()" class="btn btn-primary  btn-next">确定</button>
             </div>
         </div>
     </div>
@@ -1245,7 +1292,7 @@
         function addKeyboardListeners(modalId) {
             removeKeyboardListeners(); // 先移除旧的
             handleKeyDown = function (event) {
-                if (event.key === 'Enter' || event.key === 'ArrowDown' || event.key === 'PageDown') {
+                if (event.key === 'Enter' || event.key === 'ArrowDown' || event.key === 'PageDown' || event.key === 'ArrowRight') {
                     switch (modalId) {
                         case 'oneModal':
                             if (!isAnimating) pickOne();
