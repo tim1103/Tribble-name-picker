@@ -2,6 +2,12 @@
 const { app, BrowserWindow, ipcMain, globalShortcut, screen } = require('electron');
 const path = require('path');
 const fs = require('fs');
+const gotTheLock = app.requestSingleInstanceLock();
+
+if (!gotTheLock) {
+  app.quit();
+  return;
+}
 
 let mainWindow;
 
@@ -14,6 +20,15 @@ function getConfigPath() {
   }
 }
 
+app.on('second-instance', () => {
+  if (mainWindow) {
+    // 如果主窗口最小化则恢复
+    if (mainWindow.isMinimized()) mainWindow.restore()
+    // 将主窗口带到最前
+    mainWindow.show()
+    mainWindow.focus()
+  }
+})
 
 app.whenReady().then(() => {
   createWindow();

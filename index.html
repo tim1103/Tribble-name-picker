@@ -1146,6 +1146,22 @@
 
             // 禁用按钮
             document.getElementById('rePickButton').disabled = true;
+            // 移除焦点
+            const focusableElements = [
+                '[contenteditable]',
+                'a[href]',
+                'area[href]',
+                'button:not([disabled])',
+                'input:not([disabled]):not([type="hidden"]):not(.no-focus)',
+                'select:not([disabled])',
+                'textarea:not([disabled])',
+                '[tabindex]:not([tabindex="-1"]):not([disabled])',
+                '[contenteditable]'
+            ].join(',');
+            const allFocusableElements = document.querySelectorAll(focusableElements);
+            allFocusableElements.forEach(element => {
+                element.blur();
+            });
 
             // 生成候选名单
             const candidates = shuffleArray([...students]);
@@ -1673,6 +1689,22 @@
 
         function pickOne() {
             showModal('oneModal');
+            //取消焦点
+            const focusableElements = [
+                '[contenteditable]',
+                'a[href]',
+                'area[href]',
+                'button:not([disabled])',
+                'input:not([disabled]):not([type="hidden"]):not(.no-focus)',
+                'select:not([disabled])',
+                'textarea:not([disabled])',
+                '[tabindex]:not([tabindex="-1"]):not([disabled])',
+                '[contenteditable]'
+            ].join(',');
+            const allFocusableElements = document.querySelectorAll(focusableElements);
+            allFocusableElements.forEach(element => {
+                element.blur();
+            });
             if (isAnimating) return;
             if (students.length === 0) {
                 Swal.fire({
