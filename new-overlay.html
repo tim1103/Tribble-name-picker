@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>人物卡片</title>
+    <style>
+        body{
+            margin: 0;
+        }
+        .card {
+            width: 120px;
+            /* 长边80px */
+            background: linear-gradient(135deg, #6B2ED1 0%, #9D65F9 100%);
+            /* AI风格紫色渐变背景 */
+            border-radius: 8px;
+            padding: 2px;
+            
+            /* 轻微阴影增强立体感 */
+            -webkit-app-region: drag;
+        }
+
+        .card-title {
+            background: linear-gradient(135deg, #8A4FFF 0%, #B28DFF 100%);
+            /* 标题区渐变，与外层协调 */
+            color: #fff;
+            text-align: center;
+            padding: 5px 0;
+            border-radius: 6px;
+            font-size: large;
+            margin-bottom: 3px;
+            font-weight: bold;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .card-btn {
+            border: none;
+            color: #fff;
+            width: 100%;
+            padding: 3px 0;
+            margin: 1px 0;
+            font-size: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+        }
+
+        button {
+            border-radius: 6px;
+            -webkit-app-region: no-drag;
+        }
+
+        .btn-change {
+            background: linear-gradient(135deg, #51a2ff 0%, #2391ff 100%);
+            /* 蓝色渐变，与紫色主题协调 */
+        }
+
+        .btn-home {
+            background: linear-gradient(125deg, #ffb938 0%, #ff9d4c 100%);
+            /* 橙色渐变调整为更协调的红色系渐变 */
+        }
+    </style>
+</head>
+
+<body>
+    <div class="card">
+        <div class="card-title" id="studentName">请抽取</div>
+        <button class="card-btn btn-change" id="changeBtn">换一人</button>
+        <button class="card-btn btn-home" id="homeBtn">返回主页</button>
+    </div>
+
+    <script>
+        // 通过预加载脚本暴露的API与主进程通信
+        document.addEventListener('DOMContentLoaded', () => {
+            // 返回主页按钮功能
+            document.getElementById('homeBtn').addEventListener('click', () => {
+                window.overlayAPI.restoreMain();
+            });
+
+            // 换一人按钮功能
+            document.getElementById('changeBtn').addEventListener('click', () => {
+                // 请求主窗口执行抽取函数
+                window.overlayAPI.pickOne();
+            });
+
+            // 监听来自主进程的学生姓名更新
+            window.overlayAPI.onStudentNameUpdate((name) => {
+                document.getElementById('studentName').textContent = name;
+            });
+        });
+    </script>
+</body>
+
+</html>

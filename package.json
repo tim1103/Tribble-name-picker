@@ -1,6 +1,6 @@
 {
   "name": "random",
-  "version": "1.2.6",
+  "version": "1.2.8",
   "main": "main.js",
   "author": "tim1103",
   "description": "随机点名",

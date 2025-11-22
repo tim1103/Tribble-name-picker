@@ -22,7 +22,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
 //悬浮窗相关API
 contextBridge.exposeInMainWorld('overlayAPI', {
-  restoreMain: () => ipcRenderer.send('restore-main-window')
+  restoreMain: () => ipcRenderer.send('restore-main-window'),
+  pickOne: () => ipcRenderer.send('overlay-pick-one'),
+  onStudentNameUpdate: (callback) => ipcRenderer.on('student-name-update', (event, name) => callback(name))
 });
 
 // preload.js 中添加

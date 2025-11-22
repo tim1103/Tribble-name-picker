@@ -10,6 +10,7 @@ if (!gotTheLock) {
 }
 
 let mainWindow;
+let overlayWindow = null;
 
 // 配置文件路径判断
 function getConfigPath() {
@@ -126,12 +127,11 @@ ipcMain.handle('save-config', async (event, className) => {
   }
 });
 
-let overlayWindow = null;
 //创建悬浮窗
 function createOverlayWindow() {
   overlayWindow = new BrowserWindow({
-    width: 90,
-    height: 60,
+    width: 124,
+    height: 99,
     transparent: true,
     frame: false,
     alwaysOnTop: true,
@@ -140,22 +140,20 @@ function createOverlayWindow() {
     webPreferences: {
       contextIsolation: true, // 启用上下文隔离
       nodeIntegration: false, // 禁用nodeIntegration
-      preload: path.join(__dirname, 'preload.js'),// 加载preload.js
+      preload: path.join(__dirname, 'preload.js')// 加载preload.js
     }
   });
 
-  overlayWindow.loadFile('overlay.html');
+  overlayWindow.loadFile('new-overlay.html');
   overlayWindow.setIgnoreMouseEvents(false);
 
   const primaryDisplay = screen.getPrimaryDisplay();
   const { width, height } = primaryDisplay.workAreaSize;
-  const overlayWidth = 120;
-  const overlayHeight = 90;
   
   // 设置窗口到右下角
   overlayWindow.setPosition(
-    width - overlayWidth,
-    height - overlayHeight
+    width - 124,
+    height - 99
   );
   //打开开发者工具
   //overlayWindow.webContents.openDevTools();
@@ -235,6 +233,20 @@ ipcMain.on('restore-main-window', () => {
   }
   
   mainWindow.moveTop();
+});
+
+// 添加处理悬浮窗请求抽取学生的IPC消息
+ipcMain.on('overlay-pick-one', () => {
+  if (mainWindow) {
+    mainWindow.webContents.send('overlay-pick-one');
+  }
+});
+
+// 添加处理主窗口发送的学生姓名更新
+ipcMain.on('update-student-name', (event, name) => {
+  if (overlayWindow) {
+    overlayWindow.webContents.send('student-name-update', name);
+  }
 });
 
 // main.js 中添加

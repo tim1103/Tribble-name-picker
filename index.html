@@ -1849,6 +1849,31 @@
                 .replace(/"/g, "&quot;")
                 .replace(/'/g, "&#039;");
         }
+
+        // 监听来自悬浮窗的抽取请求
+        window.addEventListener('DOMContentLoaded', () => {
+            window.electron.on('overlay-pick-one', () => {
+                pickOneFromOverlay();
+            });
+        });
+
+        // 为悬浮窗定制的抽取函数
+        function pickOneFromOverlay() {
+            if (students.length === 0) {
+                // 如果没有学生，发送默认文本
+                window.electron.send('update-student-name', '无学生');
+                return;
+            }
+
+            const targetIndex = Math.floor(Math.random() * students.length);
+            const targetStudent = students[targetIndex];
+            
+            // 发送学生姓名到悬浮窗
+            window.electron.send('update-student-name', targetStudent);
+            
+            // 高亮显示选中的学生
+            highlightStudents([targetIndex], false);
+        }
     </script>
     <script src="bootstrap.bundle.min.js"></script>
     <script src="sweetalert2@11.js"></script>
