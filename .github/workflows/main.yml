@@ -32,10 +32,16 @@ jobs:
     - name: Install project dependencies
       run: npm install
 
-    - name: Build app
-      run: npm run dist
+    - name: Build app for different architectures
+      run: |
+        if [ "$RUNNER_OS" = "Linux" ]; then
+          npm run dist -- --ia32 --x64 --armv7l --arm64
+        elif [ "$RUNNER_OS" = "Windows" ]; then
+          npm run dist -- --ia32 --x64 --arm64
+        fi
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      shell: bash
 
     - name: Create Release and Upload Assets
       uses: softprops/action-gh-release@v1
@@ -53,5 +59,10 @@ jobs:
           dist/*.deb
           dist/*.AppImage
           dist/*.exe
+          dist/*.msi
           dist/*.portable.exe
+          dist/*arm*.zip
+          dist/*arm*.tar.gz
+          dist/*ia32*.zip
+          dist/*ia32*.tar.gz
       if: matrix.os == 'ubuntu-latest'  # 仅在Ubuntu环境上传（避免重复）
