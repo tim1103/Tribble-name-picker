@@ -6,12 +6,35 @@ on:
       - '*'  # 监听所有新tag的推送
 
 jobs:
-  build:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest, windows-latest]
-    
+  build-windows:
+    runs-on: windows-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0  # 获取完整的git历史记录（包含tag信息）
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: 18.x
+
+    - name: Install project dependencies
+      run: npm install
+
+    - name: Build Windows x64, arm64
+      run: npm run dist -- --win --x64 --arm64
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Upload Windows artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: windows-builds
+        path: dist/
+
+  build-linux:
+    runs-on: ubuntu-latest
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
@@ -24,24 +47,42 @@ jobs:
         node-version: 18.x
 
     - name: Install Linux dependencies
-      if: matrix.os == 'ubuntu-latest'
       run: |
         sudo apt-get update
-        sudo apt-get install -y fakeroot dpkg
+        sudo apt-get install -y fakeroot dpkg binfmt-support
 
     - name: Install project dependencies
       run: npm install
 
-    - name: Build app for different architectures
-      run: |
-        if [ "$RUNNER_OS" = "Linux" ]; then
-          npm run dist -- --ia32 --x64 --armv7l --arm64
-        elif [ "$RUNNER_OS" = "Windows" ]; then
-          npm run dist -- --ia32 --x64 --arm64
-        fi
+    - name: Build Linux x64, arm64 (deb and AppImage)
+      run: npm run dist -- --linux --x64 --arm64
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      shell: bash
+
+    - name: Upload Linux artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: linux-builds
+        path: dist/
+
+  release:
+    needs: [build-windows, build-linux]
+    runs-on: ubuntu-latest
+    steps:
+    - name: Download all artifacts
+      uses: actions/download-artifact@v3
+      with:
+        path: ./artifacts
+
+    - name: Prepare release assets
+      run: |
+        mkdir -p dist
+        # 从各个构建目录复制文件到统一的 dist 目录
+        find ./artifacts -name "*.exe" -exec cp {} ./dist/ \;
+        find ./artifacts -name "*.msi" -exec cp {} ./dist/ \;
+        find ./artifacts -name "*.portable.exe" -exec cp {} ./dist/ \;
+        find ./artifacts -name "*.deb" -exec cp {} ./dist/ \;
+        find ./artifacts -name "*.AppImage" -exec cp {} ./dist/ \;
 
     - name: Create Release and Upload Assets
       uses: softprops/action-gh-release@v1
@@ -51,18 +92,11 @@ jobs:
         body: |  # 可自定义Release描述
           Auto-generated release for tag ${{ github.ref_name }}
           Build artifacts:
-          - Debian Package (.deb)
-          - AppImage
-          - Windows Installer (.exe)
-          - Portable Version (.portable.exe)
+          - Windows: x64, arm64 (NSIS installer and portable)
+          - Linux: x64, arm64 (deb and AppImage)
         files: |
           dist/*.deb
           dist/*.AppImage
           dist/*.exe
           dist/*.msi
           dist/*.portable.exe
-          dist/*arm*.zip
-          dist/*arm*.tar.gz
-          dist/*ia32*.zip
-          dist/*ia32*.tar.gz
-      if: matrix.os == 'ubuntu-latest'  # 仅在Ubuntu环境上传（避免重复）
