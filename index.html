@@ -282,23 +282,19 @@
 
         /* 网格布局样式 */
         .class-list-container {
-            display: grid;
+            /* display: grid; */
             grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
             gap: 10px;
-            max-height: 60vh;
-            overflow-y: auto;
+  
+            /* max-height: 60vh; */
+            /* overflow-y: auto; */
             padding: 10px;
-            width: 80vw;
+            /* width: 80vw; */
             /* 控制模态框宽度 */
 
         }
 
-        /* 样式微调：悬停效果和云端徽章 */
-        .class-item:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 6px 18px rgba(0,0,0,0.08);
-            background: linear-gradient(180deg, #ffffff, #f7fbff);
-        }
+       
 
         .section-title {
             font-size: 0.95rem;
@@ -325,9 +321,9 @@
         }
 
         .class-list-container div {
-            background: white;
+           
             border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+          
             transition: all 0.2s ease;
             font-size: 1rem;
         }
@@ -922,6 +918,12 @@
              可调整字体大小 
             letter-spacing: 0.5px;*/
         }
+.class-list-container-shadow {
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            padding: 4px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+        }
     </style>
 </head>
 
@@ -948,7 +950,6 @@
             <div class="nav-buttons d-none d-md-flex">
                 <button onclick="showAboutModal()" class="btn btn-info">关于</button>
                 <button onclick="showClassModal()" class="btn btn-info">选择班级</button>
-                <button onclick="importList()" class="btn btn-info">导入名单</button>
             </div>
 
             <!-- 折叠菜单按钮 -->
@@ -1120,6 +1121,13 @@
                         document.getElementById('className').innerText = className;
                         updateStudentCount();
                         renderStudents();
+                        closeModal('classModal')
+                        Swal.fire({
+                            icon: "success",
+                            title: "名单导入成功",
+                            confirmButtonColor: "#3085d6",
+                            text: "名单已导入，请开始抽取！"
+                        });
                     };
                     reader.readAsText(file);
                 }
@@ -1389,7 +1397,7 @@
         let fetchCloudError = false;
         async function fetchCloudClasses() {
             if (cloudClassesCache) return cloudClassesCache;
-            const url = 'https://cdn.jsdelivr.net/gh/tim1103/Tribble-name-picker/namesheet.json';
+            const url = 'https://cdn.jsdelivr.net/gh/tim1103/Tribble-name-picker@main/namesheet.json';
             try {
                 const resp = await fetch(url, { cache: 'no-store' });
                 if (!resp.ok) throw new Error('网络请求失败');
@@ -1426,11 +1434,7 @@
             const cloudNames = Object.keys(cloud || {});
             const localNames = Object.keys(predefinedClasses || {}).filter(n => !cloudNames.includes(n));
 
-            const headerNote = document.createElement('div');
-            headerNote.style.marginBottom = '8px';
-            headerNote.style.textAlign = 'left';
-            headerNote.innerHTML = '<small>上方为云端名单（优先使用），下方为本地名单；同名班级以云端为准</small>';
-            container.appendChild(headerNote);
+          
 
             // 如果云端请求失败且无缓存，提供重试和本地使用按钮
             if (fetchCloudError) {
@@ -1465,6 +1469,7 @@
             cloudSection.innerHTML = '<div class="section-title">云端名单 <span class="badge-cloud">云</span></div>';
             const cloudGrid = document.createElement('div');
             cloudGrid.className = 'class-list-container';
+cloudGrid.className = 'class-list-container-shadow';
 
             if (cloudNames.length === 0) {
                 cloudGrid.innerHTML = '<div style="padding:12px;color:#666">无法获取云端名单或云端无数据</div>';
@@ -1484,9 +1489,10 @@
             container.appendChild(cloudSection);
 
             const localSection = document.createElement('div');
-            localSection.innerHTML = '<div class="section-title">本地名单</div>';
+            localSection.innerHTML = '<div class="section-title">本地名单 <button onclick="importList()" class="btn btn-sm btn-info ms-2">导入名单</button></div>';
             const localGrid = document.createElement('div');
             localGrid.className = 'class-list-container';
+localGrid.className = 'class-list-container-shadow';
 
             if (localNames.length === 0) {
                 localGrid.innerHTML = '<div style="padding:12px;color:#666">无本地名单</div>';
@@ -1995,7 +2001,6 @@
             menu.innerHTML = `
         <button onclick="showAboutModal()">关于</button>
         <button onclick="showClassModal()">选择班级</button>
-        <button onclick="importList()">导入名单</button>
     `;
             navCollapse.appendChild(menu);
         });
