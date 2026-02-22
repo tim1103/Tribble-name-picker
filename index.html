@@ -293,6 +293,37 @@
 
         }
 
+        /* 样式微调：悬停效果和云端徽章 */
+        .class-item:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+            background: linear-gradient(180deg, #ffffff, #f7fbff);
+        }
+
+        .section-title {
+            font-size: 0.95rem;
+            margin: 8px 0;
+            color: #333;
+            text-align: left;
+        }
+
+        .badge-cloud {
+            display: inline-block;
+            background: #2b8cff;
+            color: white;
+            font-size: 0.65rem;
+            padding: 2px 6px;
+            border-radius: 10px;
+            margin-left: 8px;
+        }
+
+        .class-actions {
+            display:flex;
+            gap:8px;
+            justify-content:flex-end;
+            margin-bottom:8px;
+        }
+
         .class-list-container div {
             background: white;
             border-radius: 12px;
@@ -1351,27 +1382,177 @@
             showModal('dragonModal');
         }
 
-        // 移除原来的populateDropdown函数，改为新的填充函数
-        function populateClassModal() {
-            const container = document.getElementById('classList');
-            container.innerHTML = '';
+        // 云端名单缓存
+        let cloudClassesCache = null;
 
-            for (const className in predefinedClasses) {
-                const div = document.createElement('div');
-                div.className = 'class-item';
-                div.innerText = className;
-                div.onclick = () => {
-                    changeClass(className);
-                    closeModal('classModal');
-                };
-                container.appendChild(div);
+        // 从 CDN 拉取云端班级名单（有缓存）
+        let fetchCloudError = false;
+        async function fetchCloudClasses() {
+            if (cloudClassesCache) return cloudClassesCache;
+            const url = 'https://cdn.jsdelivr.net/gh/tim1103/Tribble-name-picker/namesheet.json';
+            try {
+                const resp = await fetch(url, { cache: 'no-store' });
+                if (!resp.ok) throw new Error('网络请求失败');
+                const data = await resp.json();
+                cloudClassesCache = data || {};
+                // 缓存到 localStorage 以便离线回退
+                try { localStorage.setItem('cloudClassesCache', JSON.stringify(cloudClassesCache)); } catch (e) { }
+                fetchCloudError = false;
+                return cloudClassesCache;
+            } catch (e) {
+                console.warn('fetchCloudClasses error', e);
+                fetchCloudError = true;
+                // 回退到 localStorage 缓存（如果存在）
+                try {
+                    const cached = localStorage.getItem('cloudClassesCache');
+                    if (cached) {
+                        cloudClassesCache = JSON.parse(cached);
+                        return cloudClassesCache;
+                    }
+                } catch (ex) {
+                    console.warn('local cache parse failed', ex);
+                }
+                cloudClassesCache = {};
+                return cloudClassesCache;
             }
         }
 
-        // 新增显示班级模态框函数
-        function showClassModal() {
-            populateClassModal();
+        // 使用云端或本地联合展示：上方 云端， 下方 本地（去重，本地中与云端同名的班级不再显示）
+        async function populateClassModal() {
+            const container = document.getElementById('classList');
+            container.innerHTML = '';
+
+            const cloud = await fetchCloudClasses();
+            const cloudNames = Object.keys(cloud || {});
+            const localNames = Object.keys(predefinedClasses || {}).filter(n => !cloudNames.includes(n));
+
+            const headerNote = document.createElement('div');
+            headerNote.style.marginBottom = '8px';
+            headerNote.style.textAlign = 'left';
+            headerNote.innerHTML = '<small>上方为云端名单（优先使用），下方为本地名单；同名班级以云端为准</small>';
+            container.appendChild(headerNote);
+
+            // 如果云端请求失败且无缓存，提供重试和本地使用按钮
+            if (fetchCloudError) {
+                const actions = document.createElement('div');
+                actions.className = 'class-actions';
+                const retryBtn = document.createElement('button');
+                retryBtn.className = 'btn btn-sm btn-outline-primary';
+                retryBtn.innerText = '重试云端';
+                retryBtn.onclick = async () => {
+                    // 重新拉取并刷新列表
+                    cloudClassesCache = null;
+                    fetchCloudError = false;
+                    await populateClassModal();
+                };
+
+                const useLocalBtn = document.createElement('button');
+                useLocalBtn.className = 'btn btn-sm btn-outline-secondary';
+                useLocalBtn.innerText = '仅使用本地名单';
+                useLocalBtn.onclick = () => {
+                    // 只显示本地部分：清除 cloudNames 并重新渲染
+                    cloudClassesCache = {};
+                    fetchCloudError = false;
+                    populateClassModal();
+                };
+
+                actions.appendChild(useLocalBtn);
+                actions.appendChild(retryBtn);
+                container.appendChild(actions);
+            }
+
+            const cloudSection = document.createElement('div');
+            cloudSection.innerHTML = '<div class="section-title">云端名单 <span class="badge-cloud">云</span></div>';
+            const cloudGrid = document.createElement('div');
+            cloudGrid.className = 'class-list-container';
+
+            if (cloudNames.length === 0) {
+                cloudGrid.innerHTML = '<div style="padding:12px;color:#666">无法获取云端名单或云端无数据</div>';
+            } else {
+                cloudNames.forEach(className => {
+                    const div = document.createElement('div');
+                    div.className = 'class-item';
+                    div.innerText = className;
+                    div.onclick = async () => {
+                        await changeClassCloud(className);
+                        closeModal('classModal');
+                    };
+                    cloudGrid.appendChild(div);
+                });
+            }
+            cloudSection.appendChild(cloudGrid);
+            container.appendChild(cloudSection);
+
+            const localSection = document.createElement('div');
+            localSection.innerHTML = '<div class="section-title">本地名单</div>';
+            const localGrid = document.createElement('div');
+            localGrid.className = 'class-list-container';
+
+            if (localNames.length === 0) {
+                localGrid.innerHTML = '<div style="padding:12px;color:#666">无本地名单</div>';
+            } else {
+                localNames.forEach(className => {
+                    const div = document.createElement('div');
+                    div.className = 'class-item';
+                    div.innerText = className;
+                    div.onclick = () => {
+                        changeClass(className);
+                        closeModal('classModal');
+                    };
+                    localGrid.appendChild(div);
+                });
+            }
+            localSection.appendChild(localGrid);
+            container.appendChild(localSection);
+        }
+
+        // 显示班级模态框（等待 populate 完成）
+        async function showClassModal() {
+            await populateClassModal();
             showModal('classModal');
+        }
+
+        // 切换到云端班级并保存配置
+        async function changeClassCloud(className) {
+            const cloud = await fetchCloudClasses();
+            if (cloud && cloud[className]) {
+                students = cloud[className];
+                document.getElementById('className').innerText = className;
+                updateStudentCount();
+                renderStudents();
+
+                const Toast = Swal.mixin({
+                    toast: true,
+                    position: "top",
+                    showConfirmButton: false,
+                    timer: 2000,
+                    timerProgressBar: true,
+                    didOpen: (toast) => {
+                        toast.onmouseenter = Swal.stopTimer;
+                        toast.onmouseleave = Swal.resumeTimer;
+                    }
+                });
+                Toast.fire({
+                    icon: "success",
+                    title: "班级切换成功（云端）"
+                });
+
+                // 保存配置（尝试保存云端班级名）
+                try {
+                    const result = await window.electronAPI.saveConfig(className);
+                    if (!result || !result.success) {
+                        console.warn('saveConfig result', result);
+                    }
+                } catch (e) {
+                    console.warn('saveConfig failed', e);
+                }
+            } else {
+                Swal.fire({
+                    icon: "error",
+                    title: "班级不存在",
+                    text: "云端数据中未找到该班级"
+                });
+            }
         }
         function changeClass(className) {
             if (predefinedClasses.hasOwnProperty(className)) {
