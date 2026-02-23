@@ -261,6 +261,26 @@
             opacity: 1;
             font-size: 2.5em;
             font-weight: bolder;
+            transition: all 0.3s ease-in-out;
+        }
+
+        /* 接龙抽选淡入淡出动画样式 */
+        .fade-out {
+            animation: fadeOut 0.3s ease-in-out forwards;
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.3s ease-in-out forwards;
+        }
+
+        @keyframes fadeOut {
+            from { opacity: 1; transform: translateY(0); }
+            to { opacity: 0; transform: translateY(20px); }
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         /* 新增班级列表样式 */
@@ -938,7 +958,7 @@
         </div>
 
         <div class="class-info text-light opacity-85">
-            <span id="className">高一8班</span>
+            <span id="className">当前班级</span>
             <span class="mx-2">|</span>
             <span id="studentCount">0人</span>
         </div>
@@ -1338,10 +1358,32 @@
                 console.log(currentShuffledStudents);
                 currentIndex = 0;
             }
-
+        
+            const dragonCard = document.getElementById('dragonCard');
             const currentStudent = currentShuffledStudents[currentIndex];
+                    
+            // 第一步：淡出当前内容
+            dragonCard.classList.add('fade-out');
+                    
+            // 淡出完成后更新内容并开始淡入
+            setTimeout(() => {
+                dragonCard.innerText = currentStudent;
+                dragonCard.classList.remove('fade-out');
+                dragonCard.classList.add('fade-in');
+                        
+                // 淡入完成后清理类名
+                setTimeout(() => {
+                    dragonCard.classList.remove('fade-in');
+                }, 300);
+            }, 300);
+        
             currentIndex++;
-            document.getElementById('dragonCard').innerText = currentStudent;
+                    
+            // 高亮对应的学生
+            const studentIndex = students.indexOf(currentStudent);
+            if (studentIndex !== -1) {
+                highlightStudents([studentIndex], false);
+            }
         }
 
         // 修改键盘事件监听逻辑
