@@ -97,7 +97,7 @@ jobs:
         body: |  # 可自定义Release描述
           Auto-generated release for tag ${{ github.ref_name }}
           Build artifacts:
-          - Windows: x64, arm64 (NSIS installer and portable)
+          - Windows: x64 (NSIS installer and portable)
           - Linux: x64, arm64 (deb and AppImage)
         files: |
           dist/*.deb
