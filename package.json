@@ -19,26 +19,13 @@
     },
     "win": {
       "target": [
-        {
-          "target": "nsis",
-          "arch": ["x64"]
-        },
-        {
-          "target": "portable",
-          "arch": ["x64"]
-        }
+        "nsis",
+        "portable"
       ]
     },
     "linux": {
       "target": [
-        {
-          "target": "deb",
-          "arch": ["x64", "arm64"]
-        },
-        {
-          "target": "AppImage",
-          "arch": ["x64", "arm64"]
-        }
+        "deb","AppImage"
       ],
       "category": "Education",
       "icon": "icons",
