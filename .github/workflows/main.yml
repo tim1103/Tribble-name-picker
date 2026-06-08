@@ -6,32 +6,39 @@ on:
       - '*'  # 监听所有新tag的推送
 
 jobs:
-  build-windows:
+  build-windows-x64:
     runs-on: windows-latest
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
       with:
-        fetch-depth: 0  # 获取完整的git历史记录（包含tag信息）
+        fetch-depth: 0
 
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
         node-version: 18.x
 
-    - name: Install project dependencies
-      run: npm install
+    - name: Clean workspace
+      shell: pwsh
+      run: |
+        Remove-Item -Recurse -Force .\dist -ErrorAction SilentlyContinue || Write-Host "no dist"
+        git clean -fdx || true
 
-    - name: Build Windows x64, arm64
-      run: npm run dist -- --win --x64 --arm64
+    - name: Install project dependencies
+      run: npm ci
+
+    - name: Build Windows x64
+      run: npm run dist -- --win --x64
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Upload Windows artifacts
+    - name: Upload Windows x64 artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: windows-builds
+        name: windows-x64-build
         path: dist/
+
 
   build-linux:
     runs-on: ubuntu-latest
@@ -54,8 +61,8 @@ jobs:
     - name: Install project dependencies
       run: npm install
 
-    - name: Build Linux x64, arm64 (deb and AppImage)
-      run: npm run dist -- --linux --x64 --arm64
+    - name: Build Linux x64 (deb and AppImage)
+      run: npm run dist -- --linux --x64
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -66,7 +73,7 @@ jobs:
         path: dist/
 
   release:
-    needs: [build-windows, build-linux]
+    needs: [build-windows-x64, build-linux]
     runs-on: ubuntu-latest
     steps:
     - name: Checkout code
@@ -98,7 +105,7 @@ jobs:
           Auto-generated release for tag ${{ github.ref_name }}
           Build artifacts:
           - Windows: x64 (NSIS installer and portable)
-          - Linux: x64, arm64 (deb and AppImage)
+          - Linux: x64 (deb and AppImage)
         files: |
           dist/*.deb
           dist/*.AppImage
