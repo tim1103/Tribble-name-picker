@@ -34,12 +34,14 @@ app.on('second-instance', () => {
 app.whenReady().then(() => {
   createWindow();
 
-  // 注册 Ctrl+L/Command+L 快捷键（控制台）
-  globalShortcut.register('CommandOrControl+L', () => {
-    if (mainWindow) {
-      mainWindow.webContents.openDevTools();
-    }
-  });
+  // 注册 Ctrl+L/Command+L 快捷键（控制台）仅在开发环境
+  if (process.env.NODE_ENV !== 'production') {
+    globalShortcut.register('CommandOrControl+L', () => {
+      if (mainWindow) {
+        mainWindow.webContents.openDevTools();
+      }
+    });
+  }
 });
 
 // 应用退出时注销快捷键
@@ -92,8 +94,6 @@ ipcMain.handle('load-config', () => {
   }
 });
 
-const sudo = require('sudo-prompt');
-
 ipcMain.handle('save-config', async (event, className) => {
   const configPath = getConfigPath(); // 动态获取路径
   const configData = JSON.stringify({ className });
@@ -107,22 +107,27 @@ ipcMain.handle('save-config', async (event, className) => {
       return { success: false, error: error.message };
     }
 
-    // 权限不足时请求提升
+    // 权限不足时请求提升；按需加载 sudo-prompt，避免启动时加载大型模块
     return new Promise((resolve) => {
       const elevatedCommand = `echo '${configData}' > "${configPath}"`;
-
-      sudo.exec(
-        elevatedCommand,
-        { name: '随机点名配置保存' },
-        (error) => {
-          if (error) {
-            console.error('管理员写入失败:', error);
-            resolve({ success: false, error: error.message });
-          } else {
-            resolve({ success: true, isElevated: true });
+      try {
+        const sudo = require('sudo-prompt');
+        sudo.exec(
+          elevatedCommand,
+          { name: '随机点名配置保存' },
+          (error) => {
+            if (error) {
+              console.error('管理员写入失败:', error);
+              resolve({ success: false, error: error.message });
+            } else {
+              resolve({ success: true, isElevated: true });
+            }
           }
-        }
-      );
+        );
+      } catch (e) {
+        console.error('加载sudo-prompt失败:', e);
+        resolve({ success: false, error: e.message });
+      }
     });
   }
 });
@@ -250,9 +255,9 @@ ipcMain.on('update-student-name', (event, name) => {
 });
 
 // main.js 中添加
-const os = require('os');
 
 ipcMain.handle('get-system-info', () => {
+  const os = require('os'); // 按需加载，避免在启动时初始化
   return {
     platform: os.platform(),
     type: os.type(),

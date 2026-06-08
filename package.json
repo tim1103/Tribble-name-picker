@@ -1,6 +1,6 @@
 {
   "name": "random",
-  "version": "1.3.3",
+  "version": "1.3.4",
   "main": "main.js",
   "author": "tim1103",
   "description": "随机点名",
@@ -36,14 +36,41 @@
         "Comment": "课堂随机点名工具",
         "StartupWMClass": "random"
       }
-    }
+    },
+    "asar": true,
+    "files": [
+      "package.json",
+      "main.js",
+      "preload.js",
+      "index.html",
+      "new-overlay.html",
+      "overlay.html",
+      "dist/**",
+      "fonts/**",
+      "icons/**",
+      "ico.ico",
+      "icon.ico",
+      "namesheet.json",
+      "sheet.js",
+      "!**/*.map",
+      "!**/test/**",
+      "!**/tests/**",
+      "!**/docs/**",
+      "!**/examples/**",
+      "!**/*.md"
+    ],
+    "asarUnpack": [
+      "node_modules/**/native_module/**"
+    ],
+    "compression": "maximum",
+    "npmRebuild": false
   },
+
   "devDependencies": {
     "electron": "^33.2.1",
     "electron-builder": "^25.1.8"
   },
   "dependencies": {
-    "@electron/remote": "^2.1.2",
     "sudo-prompt": "^9.2.1"
   }
 }
