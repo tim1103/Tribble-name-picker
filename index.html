@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 
 <head>
@@ -12,6 +12,7 @@
             src: url('fonts/HarmonyOS_Sans_SC_Thin.ttf') format('truetype');
             font-weight: 100;
             font-style: normal;
+            font-display: swap;
         }
 
         @font-face {
@@ -19,6 +20,7 @@
             src: url('fonts/HarmonyOS_Sans_SC_Light.ttf') format('truetype');
             font-weight: 300;
             font-style: normal;
+            font-display: swap;
         }
 
         @font-face {
@@ -26,6 +28,7 @@
             src: url('fonts/HarmonyOS_Sans_SC_Regular.ttf') format('truetype');
             font-weight: 400;
             font-style: normal;
+            font-display: swap;
         }
 
         @font-face {
@@ -33,6 +36,7 @@
             src: url('fonts/HarmonyOS_Sans_SC_Medium.ttf') format('truetype');
             font-weight: 500;
             font-style: normal;
+            font-display: swap;
         }
 
         @font-face {
@@ -40,6 +44,7 @@
             src: url('fonts/HarmonyOS_Sans_SC_Bold.ttf') format('truetype');
             font-weight: 700;
             font-style: normal;
+            font-display: swap;
         }
 
         @font-face {
@@ -47,6 +52,7 @@
             src: url('fonts/HarmonyOS_Sans_SC_Black.ttf') format('truetype');
             font-weight: 900;
             font-style: normal;
+            font-display: swap;
         }
 
         @font-face {
@@ -54,6 +60,7 @@
             src: url('fonts/DingTalk_JinBuTi.ttf') format('truetype');
             font-weight: normal;
             font-style: normal;
+            font-display: swap;
         }
 
         html {
@@ -574,12 +581,13 @@
 
         /* 新增颜色变量 */
         :root {
-            --primary-color: #4361ee;
-            --secondary-color: #3f37c9;
-            --accent-color: #4895ef;
-            --background: #f8f9fa;
-            --text-primary: #2b2d42;
-            --text-secondary: #8d99ae;
+            /* 使用浅蓝色为主色调 */
+            --primary-color: #4da6ff; /* 浅天蓝 */
+            --secondary-color: #2b8cff; /* 稍深的蓝 */
+            --accent-color: #66b8ff; /* 高亮用的亮蓝 */
+            --background: #f4f9ff; /* 非纯白的柔和背景 */
+            --text-primary: #1f2d3d; /* 深色文字 */
+            --text-secondary: #6b7a8a; /* 次要文字 */
         }
 
         /* 整体背景和字体优化 */
@@ -1125,8 +1133,36 @@
                 const file = e.target.files[0];
                 if (file) {
                     const reader = new FileReader();
+                    // 以 ArrayBuffer 读取并尝试多编码检测与解码，兼容 GBK/ANSI/UTF-8
                     reader.onload = function (event) {
-                        const lines = event.target.result.split('\n').filter(line => line.trim());
+                        const buffer = event.target.result;
+                        let text = '';
+                        const tryDecode = (enc) => {
+                            try {
+                                return new TextDecoder(enc, { fatal: false }).decode(buffer);
+                            } catch (e) {
+                                return null;
+                            }
+                        };
+
+                        // 先尝试 UTF-8
+                        text = tryDecode('utf-8') || '';
+                        const hasReplacement = text.indexOf('\uFFFD') !== -1 || /�/.test(text);
+
+                        if (hasReplacement) {
+                            // 常见的 Windows 中文编码尝试：gb18030, gbk
+                            const tryList = ['gb18030', 'gbk', 'gb2312', 'windows-1252'];
+                            for (const enc of tryList) {
+                                const t = tryDecode(enc);
+                                if (t && !/�/.test(t)) {
+                                    text = t;
+                                    break;
+                                }
+                            }
+                        }
+
+                        // 规范换行并过滤空行
+                        const lines = text.replace(/\r\n/g, '\n').split('\n').map(l => l.trim()).filter(line => line.length > 0);
                         if (lines.length === 0) {
                             Swal.fire({
                                 icon: "error",
@@ -1149,7 +1185,7 @@
                             text: "名单已导入，请开始抽取！"
                         });
                     };
-                    reader.readAsText(file);
+                    reader.readAsArrayBuffer(file);
                 }
             };
             input.click();
@@ -1602,89 +1638,65 @@ localGrid.className = 'class-list-container-shadow';
                 });
             }
         }
-        function changeClass(className) {
-            if (predefinedClasses.hasOwnProperty(className)) {
-                students = predefinedClasses[className];
-                document.getElementById('className').innerText = className;
-                updateStudentCount();
-                renderStudents();
-                // 添加成功提示
-
-                const Toast = Swal.mixin({
-                    toast: true,
-                    position: "top",
-                    showConfirmButton: false,
-                    timer: 2000,
-                    timerProgressBar: true,
-                    didOpen: (toast) => {
-                        toast.onmouseenter = Swal.stopTimer;
-                        toast.onmouseleave = Swal.resumeTimer;
-                    }
-                });
-                Toast.fire({
-                    icon: "success",
-                    title: "班级切换成功"
-                });
-            } else {
-                Swal.fire({
-                    icon: "error",
-                    title: "系统内部错误",
-                    text: "班级不存在,请检查班级数据或联系管理员"
-                });
-            }
-        }
 
 
         document.addEventListener('DOMContentLoaded', async () => {
-            // 加载配置文件
-            /*const config = await window.electronAPI.loadConfig();
-            let hasValidConfig = false;
+            // 优化启动顺序：先尽快显示本地名单（保证启动速度），随后在后台拉取云端名单并在必要时替换。
+            const config = await window.electronAPI.loadConfig();
+            let currentClass = config && config.className ? config.className : null;
 
-            if (config && config.className && predefinedClasses[config.className]) {
-                students = predefinedClasses[config.className];
-                document.getElementById('className').innerText = config.className;
-                hasValidConfig = true;
+            // 先尝试以本地内置名单快速展示（防止等待云端）
+            if (currentClass && predefinedClasses[currentClass]) {
+                students = predefinedClasses[currentClass];
+                document.getElementById('className').innerText = currentClass;
+            } else if (!currentClass) {
+                // 如果没有配置，尽量用第一个内置班级快速展示以提升感知速度
+                const defaultClass = Object.keys(predefinedClasses)[0];
+                if (defaultClass) {
+                    currentClass = defaultClass;
+                    students = predefinedClasses[defaultClass];
+                    document.getElementById('className').innerText = defaultClass;
+                } else {
+                    students = [];
+                    document.getElementById('className').innerText = '未选择班级';
+                }
             } else {
-                // 如果没有有效配置，使用第一个预定义班级作为临时默认值
-                const defaultClass = Object.keys(predefinedClasses)[0] || '高一8班';
-                students = predefinedClasses[defaultClass] || [];
-                document.getElementById('className').innerText = defaultClass;
+                // 有配置但本地没有对应内置名单，先展示空状态并让用户选择或导入
+                students = [];
+                document.getElementById('className').innerText = currentClass || '未选择班级';
             }
 
             updateStudentCount();
             renderStudents();
 
-            // 如果配置无效，显示班级选择模态框
-            if (!hasValidConfig) {
-                // 延迟确保DOM渲染完成
-                setTimeout(() => {
-                    showClassModal();
-                    Swal.fire({
-                        icon: "info",
-                        title: "请选择班级",
-                        text: "检测到您是首次使用或配置丢失，请先选择班级",
-                        //confirmButtonColor: "#3085d6"
-                        footer: '如您希望直接导入名单，可直接关闭选择班级的对话框'
-                    });
-                }, 100);
-            }*/
-            const config = await window.electronAPI.loadConfig();
-            let hasValidConfig = false;
+            // 后台拉取云端名单并在发现与当前展示名单不一致时自动替换为云端名单
+            (async () => {
+                try {
+                    const cloud = await fetchCloudClasses();
+                    if (!cloud) return;
+                    if (currentClass && cloud[currentClass]) {
+                        const cloudList = cloud[currentClass] || [];
+                        // 只在确实不一致时自动替换，保持抽选/逻辑不变（只是名单内容替换）
+                        const localList = students || [];
+                        const same = JSON.stringify(localList) === JSON.stringify(cloudList);
+                        if (!same) {
+                            students = cloudList;
+                            document.getElementById('className').innerText = currentClass;
+                            updateStudentCount();
+                            renderStudents();
+                            // 保存配置（确保下次启动仍使用该班级）
+                            try { await window.electronAPI.saveConfig(currentClass); } catch (e) { console.warn(e); }
+                            const Toast = Swal.mixin({ toast: true, position: "top", showConfirmButton: false, timer: 2000, timerProgressBar: true });
+                            Toast.fire({ icon: 'info', title: '检测到云端名单更新，已自动使用云端最新名单' });
+                        }
+                    }
+                } catch (e) {
+                    console.warn('background cloud fetch failed', e);
+                }
+            })();
 
-            if (config && config.className && predefinedClasses[config.className]) {
-                students = predefinedClasses[config.className];
-                document.getElementById('className').innerText = config.className;
-                hasValidConfig = true;
-                updateStudentCount();
-                renderStudents();
-            } else {
-                // 清空原有数据
-                students = [];
-                document.getElementById('className').innerText = "未选择班级";
-                updateStudentCount();
-                renderStudents();  // 显示提示信息
-
-                // 显示提示弹窗
+            // 如果没有任何班级可展示，提示用户选择班级或导入名单
+            if (!currentClass || students.length === 0) {
                 setTimeout(() => {
                     showClassModal();
                     Swal.fire({
@@ -2108,3 +2120,5 @@ localGrid.className = 'class-list-container-shadow';
 </body>
 
 </html>
+
+
