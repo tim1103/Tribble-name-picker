@@ -55,6 +55,7 @@
       "ico.ico",
       "icon.ico",
       "namesheet.json",
+      "namesheet-new.json",
       "sheet.js",
       "!**/*.map",
       "!**/test/**",

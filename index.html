@@ -1476,14 +1476,28 @@
         let fetchCloudError = false;
         async function fetchCloudClasses() {
             if (cloudClassesCache) return cloudClassesCache;
-            const url = 'https://cdn.jsdelivr.net/gh/tim1103/Tribble-name-picker@main/namesheet.json';
+
+            const builtInSheet = await loadBuiltInNameSheet();
+            const builtinVersion = builtInSheet && builtInSheet.version ? builtInSheet.version : '0';
+            const url = 'https://cdn.jsdelivr.net/gh/tim1103/Tribble-name-picker@main/namesheet-new.json';
             try {
                 const resp = await fetch(url, { cache: 'no-store' });
                 if (!resp.ok) throw new Error('网络请求失败');
                 const data = await resp.json();
-                cloudClassesCache = data || {};
+                const cloudVersion = (data && data.version) ? data.version : '0';
+                const cloudClassMap = (data && data.class) ? data.class : (data && typeof data === 'object' ? data : {});
+
+                if (compareVersion(cloudVersion, builtinVersion) <= 0) {
+                    cloudClassesCache = {};
+                    fetchCloudError = false;
+                    return cloudClassesCache;
+                }
+
+                cloudClassesCache = cloudClassMap || {};
                 // 缓存到 localStorage 以便离线回退
-                try { localStorage.setItem('cloudClassesCache', JSON.stringify(cloudClassesCache)); } catch (e) { }
+                try {
+                    localStorage.setItem('cloudClassesCache', JSON.stringify({ version: cloudVersion, class: cloudClassesCache }));
+                } catch (e) { }
                 fetchCloudError = false;
                 return cloudClassesCache;
             } catch (e) {
@@ -1493,8 +1507,13 @@
                 try {
                     const cached = localStorage.getItem('cloudClassesCache');
                     if (cached) {
-                        cloudClassesCache = JSON.parse(cached);
-                        return cloudClassesCache;
+                        const cachedData = JSON.parse(cached);
+                        const cachedClassMap = (cachedData && cachedData.class) ? cachedData.class : cachedData || {};
+                        const cachedVersion = (cachedData && cachedData.version) ? cachedData.version : '0';
+                        if (compareVersion(cachedVersion, builtinVersion) > 0) {
+                            cloudClassesCache = cachedClassMap;
+                            return cloudClassesCache;
+                        }
                     }
                 } catch (ex) {
                     console.warn('local cache parse failed', ex);
@@ -1511,7 +1530,7 @@
 
             const cloud = await fetchCloudClasses();
             const cloudNames = Object.keys(cloud || {});
-            const localNames = Object.keys(predefinedClasses || {}).filter(n => !cloudNames.includes(n));
+            const localNames = Object.keys(builtInClasses || {}).filter(n => !cloudNames.includes(n));
 
           
 
@@ -1641,21 +1660,69 @@ localGrid.className = 'class-list-container-shadow';
         }
 
 
+        let builtInClasses = {};
+        let builtInVersion = '0';
+
+        async function loadBuiltInNameSheet() {
+            if (Object.keys(builtInClasses).length > 0 || builtInVersion !== '0') {
+                return { version: builtInVersion, class: builtInClasses };
+            }
+
+            const fallbackMap = (typeof predefinedClasses !== 'undefined') ? predefinedClasses : {};
+            const candidateUrls = [
+                new URL('./namesheet-new.json', window.location.href).toString(),
+                new URL('./namesheet.json', window.location.href).toString()
+            ];
+
+            for (const url of candidateUrls) {
+                try {
+                    const resp = await fetch(url, { cache: 'no-store' });
+                    if (!resp.ok) continue;
+                    const data = await resp.json();
+                    const classMap = (data && data.class) ? data.class : (data && typeof data === 'object' ? data : {});
+                    const version = (data && data.version) ? data.version : '0';
+                    if (classMap && Object.keys(classMap).length > 0) {
+                        builtInClasses = classMap;
+                        builtInVersion = version || '0';
+                        return { version: builtInVersion, class: builtInClasses };
+                    }
+                } catch (error) {
+                    console.warn('loadBuiltInNameSheet failed for', url, error);
+                }
+            }
+
+            builtInClasses = fallbackMap;
+            builtInVersion = '0';
+            return { version: builtInVersion, class: builtInClasses };
+        }
+
+        function compareVersion(a, b) {
+            const parse = (version) => {
+                if (!version || typeof version !== 'string') return 0;
+                const normalized = version.trim().replace(' ', 'T');
+                const time = Date.parse(normalized);
+                return Number.isNaN(time) ? 0 : time;
+            };
+            return parse(a) - parse(b);
+        }
+
         document.addEventListener('DOMContentLoaded', async () => {
+            await loadBuiltInNameSheet();
+
             // 优化启动顺序：先尽快显示本地名单（保证启动速度），随后在后台拉取云端名单并在必要时替换。
             const config = await window.electronAPI.loadConfig();
             let currentClass = config && config.className ? config.className : null;
 
             // 先尝试以本地内置名单快速展示（防止等待云端）
-            if (currentClass && predefinedClasses[currentClass]) {
-                students = predefinedClasses[currentClass];
+            if (currentClass && builtInClasses[currentClass]) {
+                students = builtInClasses[currentClass];
                 document.getElementById('className').innerText = currentClass;
             } else if (!currentClass) {
                 // 如果没有配置，尽量用第一个内置班级快速展示以提升感知速度
-                const defaultClass = Object.keys(predefinedClasses)[0];
+                const defaultClass = Object.keys(builtInClasses)[0];
                 if (defaultClass) {
                     currentClass = defaultClass;
-                    students = predefinedClasses[defaultClass];
+                    students = builtInClasses[defaultClass];
                     document.getElementById('className').innerText = defaultClass;
                 } else {
                     students = [];
@@ -1674,7 +1741,7 @@ localGrid.className = 'class-list-container-shadow';
             (async () => {
                 try {
                     const cloud = await fetchCloudClasses();
-                    if (!cloud) return;
+                    if (!cloud || Object.keys(cloud).length === 0) return;
                     if (currentClass && cloud[currentClass]) {
                         const cloudList = cloud[currentClass] || [];
                         // 只在确实不一致时自动替换，保持抽选/逻辑不变（只是名单内容替换）
@@ -1710,8 +1777,8 @@ localGrid.className = 'class-list-container-shadow';
             }
         });
         async function changeClass(className) {
-            if (predefinedClasses.hasOwnProperty(className)) {
-                students = predefinedClasses[className];
+            if (Object.prototype.hasOwnProperty.call(builtInClasses, className)) {
+                students = builtInClasses[className];
                 document.getElementById('className').innerText = className;
                 updateStudentCount();
                 renderStudents();
