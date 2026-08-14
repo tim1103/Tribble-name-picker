@@ -1471,6 +1471,8 @@
 
         // 云端名单缓存
         let cloudClassesCache = null;
+        let cloudVersion = '0';
+        let cloudHasNewerVersion = false;
 
         // 从 CDN 拉取云端班级名单（有缓存）
         let fetchCloudError = false;
@@ -1484,15 +1486,11 @@
                 const resp = await fetch(url, { cache: 'no-store' });
                 if (!resp.ok) throw new Error('网络请求失败');
                 const data = await resp.json();
-                const cloudVersion = (data && data.version) ? data.version : '0';
+                const cloudVersionLocal = (data && data.version) ? data.version : '0';
                 const cloudClassMap = (data && data.class) ? data.class : (data && typeof data === 'object' ? data : {});
 
-                if (compareVersion(cloudVersion, builtinVersion) <= 0) {
-                    cloudClassesCache = {};
-                    fetchCloudError = false;
-                    return cloudClassesCache;
-                }
-
+                cloudVersion = cloudVersionLocal;
+                cloudHasNewerVersion = compareVersion(cloudVersion, builtinVersion) > 0;
                 cloudClassesCache = cloudClassMap || {};
                 // 缓存到 localStorage 以便离线回退
                 try {
@@ -1510,15 +1508,17 @@
                         const cachedData = JSON.parse(cached);
                         const cachedClassMap = (cachedData && cachedData.class) ? cachedData.class : cachedData || {};
                         const cachedVersion = (cachedData && cachedData.version) ? cachedData.version : '0';
-                        if (compareVersion(cachedVersion, builtinVersion) > 0) {
-                            cloudClassesCache = cachedClassMap;
-                            return cloudClassesCache;
-                        }
+                        cloudVersion = cachedVersion;
+                        cloudHasNewerVersion = compareVersion(cachedVersion, builtinVersion) > 0;
+                        cloudClassesCache = cachedClassMap;
+                        return cloudClassesCache;
                     }
                 } catch (ex) {
                     console.warn('local cache parse failed', ex);
                 }
                 cloudClassesCache = {};
+                cloudVersion = '0';
+                cloudHasNewerVersion = false;
                 return cloudClassesCache;
             }
         }
@@ -1742,6 +1742,7 @@ localGrid.className = 'class-list-container-shadow';
                 try {
                     const cloud = await fetchCloudClasses();
                     if (!cloud || Object.keys(cloud).length === 0) return;
+                    if (!cloudHasNewerVersion) return;
                     if (currentClass && cloud[currentClass]) {
                         const cloudList = cloud[currentClass] || [];
                         // 只在确实不一致时自动替换，保持抽选/逻辑不变（只是名单内容替换）
